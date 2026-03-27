@@ -165,6 +165,12 @@ class _PatientListScreenState extends State<PatientListScreen> {
                   if (!mounted) return;
                   Navigator.pop(context);
 
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Paciente creado correctamente'),
+                    ),
+                  );
+
                   setState(() {
                     _loadPatients();
                   });
@@ -551,13 +557,112 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
+  Future<void> _openEditPatientForm() async {
+  final nameController = TextEditingController(text: widget.patient['name']);
+  final ageController = TextEditingController(text: widget.patient['age'].toString());
+  final phoneController = TextEditingController(text: widget.patient['phone']);
+  final emailController = TextEditingController(text: widget.patient['email']);
+
+  String gender = widget.patient['gender'] == 'M'
+    ? 'male'
+    : widget.patient['gender'] == 'F'
+        ? 'female'
+        : (widget.patient['gender'] ?? 'female');
+
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Editar paciente'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Nombre'),
+              ),
+              TextField(
+                controller: ageController,
+                decoration: const InputDecoration(labelText: 'Edad'),
+                keyboardType: TextInputType.number,
+              ),
+              DropdownButtonFormField<String>(
+                value: gender,
+                items: const [
+                  DropdownMenuItem(value: 'male', child: Text('Hombre')),
+                  DropdownMenuItem(value: 'female', child: Text('Mujer')),
+                ],
+                onChanged: (value) => gender = value!,
+                decoration: const InputDecoration(labelText: 'Género'),
+              ),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: 'Teléfono'),
+              ),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(labelText: 'Email'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                await PatientService.updatePatient(
+                  id: widget.patient['id'],
+                  name: nameController.text,
+                  age: int.parse(ageController.text),
+                  gender: gender,
+                  phone: phoneController.text,
+                  email: emailController.text,
+                );
+
+                if (!mounted) return;
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Paciente actualizado')),
+                );
+
+                setState(() {
+                  widget.patient['name'] = nameController.text;
+                  widget.patient['age'] = int.parse(ageController.text);
+                  widget.patient['phone'] = phoneController.text;
+                  widget.patient['email'] = emailController.text;
+                  widget.patient['gender'] = gender;
+                });
+              } catch (e) {
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e')),
+                );
+              }
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.patient['name'] ?? '')),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openAnthropometryForm,
-        child: const Icon(Icons.add),
+      appBar: AppBar(
+        title: Text(widget.patient['name'] ?? ''),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit),
+            onPressed: _openEditPatientForm,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
