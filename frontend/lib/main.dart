@@ -232,14 +232,18 @@ class _PatientListScreenState extends State<PatientListScreen> {
                 child: ListTile(
                   title: Text(patient['name'] ?? ''),
                   subtitle: Text(patient['email'] ?? ''),
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
                             PatientDetailScreen(patient: patient),
                       ),
                     );
+
+                    setState(() {
+                      _loadPatients();
+                    });
                   },
                 ),
               );
@@ -592,6 +596,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final emailController = TextEditingController(
       text: widget.patient['email'],
     );
+    final formKey = GlobalKey<FormState>();
 
     String gender = widget.patient['gender'] == 'M'
         ? 'male'
@@ -605,43 +610,63 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         return AlertDialog(
           title: const Text('Editar paciente'),
           content: SingleChildScrollView(
-            child: Column(
-              children: [
-                TextField(
-                  controller: nameController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Nombre'),
-                ),
-                TextField(
-                  controller: ageController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Edad'),
-                  keyboardType: TextInputType.number,
-                ),
-                DropdownButtonFormField<String>(
-                  value: gender,
-                  items: const [
-                    DropdownMenuItem(value: 'male', child: Text('Hombre')),
-                    DropdownMenuItem(value: 'female', child: Text('Mujer')),
-                  ],
-                  onChanged: (value) => gender = value!,
-                  decoration: const InputDecoration(labelText: 'Género'),
-                ),
-                TextField(
-                  controller: phoneController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Teléfono'),
-                ),
-                TextField(
-                  controller: emailController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                ),
-              ],
+            child: Form(
+              key: formKey,
+              child: Column(
+                children: [
+                  TextField(
+                    controller: nameController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                  ),
+                  TextFormField(
+                    controller: ageController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(labelText: 'Edad'),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Edad obligatoria';
+                      }
+
+                      final age = int.tryParse(value);
+
+                      if (age == null) {
+                        return 'Debe ser número';
+                      }
+
+                      if (age < 0 || age > 120) {
+                        return 'Edad inválida';
+                      }
+
+                      return null;
+                    },
+                  ),
+                  DropdownButtonFormField<String>(
+                    value: gender,
+                    items: const [
+                      DropdownMenuItem(value: 'male', child: Text('Hombre')),
+                      DropdownMenuItem(value: 'female', child: Text('Mujer')),
+                    ],
+                    onChanged: (value) => gender = value!,
+                    decoration: const InputDecoration(labelText: 'Género'),
+                  ),
+                  TextField(
+                    controller: phoneController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(labelText: 'Teléfono'),
+                  ),
+                  TextField(
+                    controller: emailController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.done,
+                    decoration: const InputDecoration(labelText: 'Email'),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -651,6 +676,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
                 try {
                   await PatientService.updatePatient(
                     id: widget.patient['id'],
