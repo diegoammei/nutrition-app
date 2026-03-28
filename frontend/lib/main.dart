@@ -343,7 +343,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 TextField(
                   controller: hipController,
                   maxLines: 1,
-                  textInputAction: TextInputAction.next,
+                  textInputAction: TextInputAction.done,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Cadera (opcional)',
@@ -489,7 +489,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 TextFormField(
                   controller: activityController,
                   maxLines: 1,
-                  textInputAction: TextInputAction.next,
+                  textInputAction: TextInputAction.done,
                   decoration: const InputDecoration(
                     labelText: 'Factor actividad (ej: 1.2)',
                   ),
@@ -638,7 +638,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 TextField(
                   controller: emailController,
                   maxLines: 1,
-                  textInputAction: TextInputAction.next,
+                  textInputAction: TextInputAction.done,
                   decoration: const InputDecoration(labelText: 'Email'),
                 ),
               ],
