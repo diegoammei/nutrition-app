@@ -37,8 +37,8 @@ class PatientService {
       throw Exception('Error al crear paciente');
     }
   }
-    
-    static Future<void> updatePatient({
+
+  static Future<void> updatePatient({
     required int id,
     required String name,
     required int age,
@@ -60,6 +60,14 @@ class PatientService {
 
     if (response.statusCode != 200) {
       throw Exception('Error al actualizar paciente');
+    }
+  }
+
+  static Future<void> deletePatient(int id) async {
+    final response = await http.delete(Uri.parse('$baseUrl$id/'));
+
+    if (response.statusCode != 204) {
+      throw Exception('Error al eliminar paciente');
     }
   }
 }

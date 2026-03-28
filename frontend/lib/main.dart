@@ -66,6 +66,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
                   TextFormField(
                     controller: nameController,
                     decoration: const InputDecoration(labelText: 'Nombre'),
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'El nombre es obligatorio';
@@ -87,6 +89,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     controller: ageController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(labelText: 'Edad'),
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Edad obligatoria';
@@ -116,6 +120,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
                     decoration: const InputDecoration(labelText: 'Teléfono'),
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Teléfono obligatorio';
@@ -130,6 +136,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(labelText: 'Email'),
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Email obligatorio';
@@ -311,16 +319,22 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               children: [
                 TextField(
                   controller: weightController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Peso (kg)'),
                 ),
                 TextField(
                   controller: heightController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(labelText: 'Estatura (cm)'),
                 ),
                 TextField(
                   controller: waistController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Cintura (opcional)',
@@ -328,6 +342,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 ),
                 TextField(
                   controller: hipController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Cadera (opcional)',
@@ -413,6 +429,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 TextFormField(
                   controller: weightController,
                   decoration: const InputDecoration(labelText: 'Peso'),
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -431,6 +449,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 TextFormField(
                   controller: heightController,
                   decoration: const InputDecoration(labelText: 'Estatura'),
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -449,6 +469,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 TextFormField(
                   controller: ageController,
                   decoration: const InputDecoration(labelText: 'Edad'),
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   keyboardType: TextInputType.number,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -466,6 +488,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                 ),
                 TextFormField(
                   controller: activityController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
                     labelText: 'Factor actividad (ej: 1.2)',
                   ),
@@ -558,99 +582,155 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   }
 
   Future<void> _openEditPatientForm() async {
-  final nameController = TextEditingController(text: widget.patient['name']);
-  final ageController = TextEditingController(text: widget.patient['age'].toString());
-  final phoneController = TextEditingController(text: widget.patient['phone']);
-  final emailController = TextEditingController(text: widget.patient['email']);
+    final nameController = TextEditingController(text: widget.patient['name']);
+    final ageController = TextEditingController(
+      text: widget.patient['age'].toString(),
+    );
+    final phoneController = TextEditingController(
+      text: widget.patient['phone'],
+    );
+    final emailController = TextEditingController(
+      text: widget.patient['email'],
+    );
 
-  String gender = widget.patient['gender'] == 'M'
-    ? 'male'
-    : widget.patient['gender'] == 'F'
+    String gender = widget.patient['gender'] == 'M'
+        ? 'male'
+        : widget.patient['gender'] == 'F'
         ? 'female'
         : (widget.patient['gender'] ?? 'female');
 
-  await showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Editar paciente'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-              ),
-              TextField(
-                controller: ageController,
-                decoration: const InputDecoration(labelText: 'Edad'),
-                keyboardType: TextInputType.number,
-              ),
-              DropdownButtonFormField<String>(
-                value: gender,
-                items: const [
-                  DropdownMenuItem(value: 'male', child: Text('Hombre')),
-                  DropdownMenuItem(value: 'female', child: Text('Mujer')),
-                ],
-                onChanged: (value) => gender = value!,
-                decoration: const InputDecoration(labelText: 'Género'),
-              ),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(labelText: 'Teléfono'),
-              ),
-              TextField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
-              ),
-            ],
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Editar paciente'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: [
+                TextField(
+                  controller: nameController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(labelText: 'Nombre'),
+                ),
+                TextField(
+                  controller: ageController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(labelText: 'Edad'),
+                  keyboardType: TextInputType.number,
+                ),
+                DropdownButtonFormField<String>(
+                  value: gender,
+                  items: const [
+                    DropdownMenuItem(value: 'male', child: Text('Hombre')),
+                    DropdownMenuItem(value: 'female', child: Text('Mujer')),
+                  ],
+                  onChanged: (value) => gender = value!,
+                  decoration: const InputDecoration(labelText: 'Género'),
+                ),
+                TextField(
+                  controller: phoneController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(labelText: 'Teléfono'),
+                ),
+                TextField(
+                  controller: emailController,
+                  maxLines: 1,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(labelText: 'Email'),
+                ),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              try {
-                await PatientService.updatePatient(
-                  id: widget.patient['id'],
-                  name: nameController.text,
-                  age: int.parse(ageController.text),
-                  gender: gender,
-                  phone: phoneController.text,
-                  email: emailController.text,
-                );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await PatientService.updatePatient(
+                    id: widget.patient['id'],
+                    name: nameController.text,
+                    age: int.parse(ageController.text),
+                    gender: gender,
+                    phone: phoneController.text,
+                    email: emailController.text,
+                  );
 
-                if (!mounted) return;
-                Navigator.pop(context);
+                  if (!mounted) return;
+                  Navigator.pop(context);
 
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Paciente actualizado')),
-                );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Paciente actualizado')),
+                  );
 
-                setState(() {
-                  widget.patient['name'] = nameController.text;
-                  widget.patient['age'] = int.parse(ageController.text);
-                  widget.patient['phone'] = phoneController.text;
-                  widget.patient['email'] = emailController.text;
-                  widget.patient['gender'] = gender;
-                });
-              } catch (e) {
-                if (!mounted) return;
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e')),
-                );
-              }
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
+                  setState(() {
+                    widget.patient['name'] = nameController.text;
+                    widget.patient['age'] = int.parse(ageController.text);
+                    widget.patient['phone'] = phoneController.text;
+                    widget.patient['email'] = emailController.text;
+                    widget.patient['gender'] = gender;
+                  });
+                } catch (e) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _confirmDeletePatient() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Eliminar paciente'),
+          content: const Text('¿Seguro que quieres eliminar este paciente?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Eliminar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await PatientService.deletePatient(widget.patient['id']);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Paciente eliminado correctamente')),
       );
-    },
-  );
-}
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -661,6 +741,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: _openEditPatientForm,
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: _confirmDeletePatient,
           ),
         ],
       ),
