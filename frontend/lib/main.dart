@@ -72,16 +72,12 @@ class _PatientListScreenState extends State<PatientListScreen> {
                       if (value == null || value.isEmpty) {
                         return 'El nombre es obligatorio';
                       }
-
                       if (value.length < 2) {
                         return 'Nombre muy corto';
                       }
-
-                      // Debe contener al menos una letra
                       if (!RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]').hasMatch(value)) {
                         return 'Debe contener al menos una letra';
                       }
-
                       return null;
                     },
                   ),
@@ -310,7 +306,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final heightController = TextEditingController();
     final waistController = TextEditingController();
     final hipController = TextEditingController();
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
 
     await showDialog(
       context: context,
@@ -318,42 +314,89 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         return AlertDialog(
           title: const Text('Agregar antropometría'),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: weightController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Peso (kg)'),
-                ),
-                TextField(
-                  controller: heightController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Estatura (cm)'),
-                ),
-                TextField(
-                  controller: waistController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Cintura (opcional)',
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: weightController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Peso (kg)'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Peso obligatorio';
+                      }
+                      final weight = double.tryParse(value);
+                      if (weight == null) {
+                        return 'Debe ser número';
+                      }
+                      if (weight < 20 || weight > 300) {
+                        return 'Peso fuera de rango';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-                TextField(
-                  controller: hipController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.done,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Cadera (opcional)',
+                  TextFormField(
+                    controller: heightController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Estatura (cm)',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Estatura obligatoria';
+                      }
+                      final height = double.tryParse(value);
+                      if (height == null) {
+                        return 'Debe ser número';
+                      }
+                      if (height < 100 || height > 250) {
+                        return 'Estatura inválida';
+                      }
+                      return null;
+                    },
                   ),
-                ),
-              ],
+                  TextFormField(
+                    controller: waistController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Cintura (opcional)',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return null;
+                      final waist = double.tryParse(value);
+                      if (waist == null) {
+                        return 'Debe ser número';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: hipController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.done,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Cadera (opcional)',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) return null;
+                      final hip = double.tryParse(value);
+                      if (hip == null) {
+                        return 'Debe ser número';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -363,17 +406,26 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
+                if (!formKey.currentState!.validate()) return;
+
                 try {
+                  final weight = double.tryParse(weightController.text);
+                  final height = double.tryParse(heightController.text);
+                  final waist = waistController.text.isNotEmpty
+                      ? double.tryParse(waistController.text)
+                      : null;
+                  final hip = hipController.text.isNotEmpty
+                      ? double.tryParse(hipController.text)
+                      : null;
+
+                  if (weight == null || height == null) return;
+
                   await AnthropometryService.createAnthropometry(
                     patientId: widget.patient['id'],
-                    weight: double.parse(weightController.text),
-                    height: double.parse(heightController.text),
-                    waist: waistController.text.isNotEmpty
-                        ? double.parse(waistController.text)
-                        : null,
-                    hip: hipController.text.isNotEmpty
-                        ? double.parse(hipController.text)
-                        : null,
+                    weight: weight,
+                    height: height,
+                    waist: waist,
+                    hip: hip,
                   );
 
                   if (!mounted) return;
@@ -407,11 +459,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final weightController = TextEditingController(
       text: last != null ? last['weight'].toString() : '',
     );
-
     final heightController = TextEditingController(
       text: last != null ? last['height'].toString() : '',
     );
-
     final ageController = TextEditingController(
       text: widget.patient['age'].toString(),
     );
@@ -421,165 +471,290 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     String gender = 'female';
     String goal = 'deficit';
 
+    double? previewCalories;
+    double? previewProtein;
+    double? previewCarbs;
+    double? previewFats;
+    double? previewImc;
+    String? previewImcCategory;
+
+    void calculatePreview(StateSetter setModalState) {
+      final weight = double.tryParse(weightController.text);
+      final height = double.tryParse(heightController.text);
+      final age = int.tryParse(ageController.text);
+      final activity = double.tryParse(activityController.text);
+
+      if (weight == null || height == null || age == null || activity == null) {
+        setModalState(() {
+          previewCalories = null;
+          previewProtein = null;
+          previewCarbs = null;
+          previewFats = null;
+          previewImc = null;
+          previewImcCategory = null;
+        });
+        return;
+      }
+
+      double bmr;
+      if (gender == 'male') {
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+      } else {
+        bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+      }
+
+      double calories = bmr * activity;
+
+      if (goal == 'deficit') {
+        calories -= 300;
+      } else if (goal == 'superavit') {
+        calories += 300;
+      }
+
+      final protein = (calories * 0.30) / 4;
+      final carbs = (calories * 0.40) / 4;
+      final fats = (calories * 0.30) / 9;
+      final heightMeters = height / 100;
+      final imc = weight / (heightMeters * heightMeters);
+
+      String imcCategory;
+
+      if (imc < 18.5) {
+        imcCategory = 'Bajo peso';
+      } else if (imc < 25) {
+        imcCategory = 'Normal';
+      } else if (imc < 30) {
+        imcCategory = 'Sobrepeso';
+      } else {
+        imcCategory = 'Obesidad';
+      }
+
+      setModalState(() {
+        previewCalories = calories;
+        previewProtein = protein;
+        previewCarbs = carbs;
+        previewFats = fats;
+        previewImc = imc;
+        previewImcCategory = imcCategory;
+      });
+    }
+
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Crear plan nutricional'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: weightController,
-                  decoration: const InputDecoration(labelText: 'Peso'),
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Peso obligatorio';
-                    }
-                    final weight = double.tryParse(value);
-                    if (weight == null) {
-                      return 'Debe ser número';
-                    }
-                    if (weight < 20 || weight > 300) {
-                      return 'Peso fuera de rango';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: heightController,
-                  decoration: const InputDecoration(labelText: 'Estatura'),
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Estatura obligatoria';
-                    }
-                    final height = double.tryParse(value);
-                    if (height == null) {
-                      return 'Debe ser número';
-                    }
-                    if (height < 100 || height > 250) {
-                      return 'Estatura inválida';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: ageController,
-                  decoration: const InputDecoration(labelText: 'Edad'),
-                  maxLines: 1,
-                  textInputAction: TextInputAction.next,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Edad obligatoria';
-                    }
-                    final age = int.tryParse(value);
-                    if (age == null) {
-                      return 'Debe ser número entero';
-                    }
-                    if (age < 0 || age > 120) {
-                      return 'Edad inválida';
-                    }
-                    return null;
-                  },
-                ),
-                TextFormField(
-                  controller: activityController,
-                  maxLines: 1,
-                  textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(
-                    labelText: 'Factor actividad (ej: 1.2)',
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: const Text('Crear plan nutricional'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextFormField(
+                        controller: weightController,
+                        decoration: const InputDecoration(labelText: 'Peso'),
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => calculatePreview(setModalState),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Peso obligatorio';
+                          }
+                          final weight = double.tryParse(value);
+                          if (weight == null) {
+                            return 'Debe ser número';
+                          }
+                          if (weight < 20 || weight > 300) {
+                            return 'Peso fuera de rango';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: heightController,
+                        decoration: const InputDecoration(
+                          labelText: 'Estatura',
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => calculatePreview(setModalState),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Estatura obligatoria';
+                          }
+                          final height = double.tryParse(value);
+                          if (height == null) {
+                            return 'Debe ser número';
+                          }
+                          if (height < 100 || height > 250) {
+                            return 'Estatura inválida';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: ageController,
+                        decoration: const InputDecoration(labelText: 'Edad'),
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => calculatePreview(setModalState),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Edad obligatoria';
+                          }
+                          final age = int.tryParse(value);
+                          if (age == null) {
+                            return 'Debe ser número entero';
+                          }
+                          if (age < 0 || age > 120) {
+                            return 'Edad inválida';
+                          }
+                          return null;
+                        },
+                      ),
+                      TextFormField(
+                        controller: activityController,
+                        decoration: const InputDecoration(
+                          labelText: 'Factor actividad (ej: 1.2)',
+                        ),
+                        keyboardType: TextInputType.number,
+                        onChanged: (_) => calculatePreview(setModalState),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Factor de actividad obligatorio';
+                          }
+                          final activity = double.tryParse(value);
+                          if (activity == null) {
+                            return 'Debe ser número';
+                          }
+                          if (activity < 1.2 || activity > 2.5) {
+                            return 'Factor inválido';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      DropdownButtonFormField<String>(
+                        value: gender,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'male',
+                            child: Text('Hombre'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'female',
+                            child: Text('Mujer'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          gender = value!;
+                          calculatePreview(setModalState);
+                        },
+                        decoration: const InputDecoration(labelText: 'Género'),
+                      ),
+                      DropdownButtonFormField<String>(
+                        value: goal,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'deficit',
+                            child: Text('Déficit'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'superavit',
+                            child: Text('Superávit'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'maintain',
+                            child: Text('Mantenimiento'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          goal = value!;
+                          calculatePreview(setModalState);
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Objetivo',
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      if (previewCalories != null)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Vista previa del plan',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Calorías: ${previewCalories!.toStringAsFixed(2)} kcal',
+                                ),
+                                Text(
+                                  'IMC: ${previewImc!.toStringAsFixed(2)} (${previewImcCategory ?? ''})',
+                                ),
+                                Text(
+                                  'Proteína: ${previewProtein!.toStringAsFixed(2)} g',
+                                ),
+                                Text(
+                                  'Carbohidratos: ${previewCarbs!.toStringAsFixed(2)} g',
+                                ),
+                                Text(
+                                  'Grasas: ${previewFats!.toStringAsFixed(2)} g',
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Factor de actividad obligatorio';
-                    }
-                    final activity = double.tryParse(value);
-                    if (activity == null) {
-                      return 'Debe ser número';
-                    }
-                    if (activity < 1.2 || activity > 2.5) {
-                      return 'Factor inválido';
-                    }
-                    return null;
-                  },
                 ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: gender,
-                  items: const [
-                    DropdownMenuItem(value: 'male', child: Text('Hombre')),
-                    DropdownMenuItem(value: 'female', child: Text('Mujer')),
-                  ],
-                  onChanged: (value) {
-                    gender = value!;
-                  },
-                  decoration: const InputDecoration(labelText: 'Género'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
                 ),
-                DropdownButtonFormField<String>(
-                  value: goal,
-                  items: const [
-                    DropdownMenuItem(value: 'deficit', child: Text('Déficit')),
-                    DropdownMenuItem(
-                      value: 'superavit',
-                      child: Text('Superávit'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'maintain',
-                      child: Text('Mantenimiento'),
-                    ),
-                  ],
-                  onChanged: (value) {
-                    goal = value!;
+                ElevatedButton(
+                  onPressed: () async {
+                    if (!formKey.currentState!.validate()) return;
+                    try {
+                      final weight = double.tryParse(weightController.text)!;
+                      final height = double.tryParse(heightController.text)!;
+                      final age = int.tryParse(ageController.text)!;
+                      final activity = double.tryParse(
+                        activityController.text,
+                      )!;
+
+                      await NutritionPlanService.createNutritionPlan(
+                        patientId: widget.patient['id'],
+                        weight: weight,
+                        height: height,
+                        age: age,
+                        gender: gender,
+                        activityFactor: activity,
+                        goal: goal,
+                      );
+
+                      if (!mounted) return;
+                      Navigator.pop(context);
+
+                      setState(() {
+                        _loadData();
+                      });
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
                   },
-                  decoration: const InputDecoration(labelText: 'Objetivo'),
+                  child: const Text('Guardar'),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                try {
-                  await NutritionPlanService.createNutritionPlan(
-                    patientId: widget.patient['id'],
-                    weight: double.parse(weightController.text),
-                    height: double.parse(heightController.text),
-                    age: int.parse(ageController.text),
-                    gender: gender,
-                    activityFactor: double.parse(activityController.text),
-                    goal: goal,
-                  );
-
-                  if (!mounted) return;
-                  Navigator.pop(context);
-
-                  setState(() {
-                    _loadData();
-                  });
-                } catch (e) {
-                  if (!mounted) return;
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
-                }
-              },
-              child: const Text('Guardar'),
-            ),
-          ],
+            );
+          },
         );
       },
     );
@@ -614,11 +789,23 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               key: formKey,
               child: Column(
                 children: [
-                  TextField(
+                  TextFormField(
                     controller: nameController,
                     maxLines: 1,
                     textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(labelText: 'Nombre'),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'El nombre es obligatorio';
+                      }
+                      if (value.length < 2) {
+                        return 'Nombre muy corto';
+                      }
+                      if (!RegExp(r'[a-zA-ZáéíóúÁÉÍÓÚñÑ]').hasMatch(value)) {
+                        return 'Debe contener al menos una letra';
+                      }
+                      return null;
+                    },
                   ),
                   TextFormField(
                     controller: ageController,
@@ -630,17 +817,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       if (value == null || value.isEmpty) {
                         return 'Edad obligatoria';
                       }
-
                       final age = int.tryParse(value);
-
                       if (age == null) {
                         return 'Debe ser número';
                       }
-
                       if (age < 0 || age > 120) {
                         return 'Edad inválida';
                       }
-
                       return null;
                     },
                   ),
@@ -653,17 +836,37 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     onChanged: (value) => gender = value!,
                     decoration: const InputDecoration(labelText: 'Género'),
                   ),
-                  TextField(
+                  TextFormField(
                     controller: phoneController,
                     maxLines: 1,
                     textInputAction: TextInputAction.next,
                     decoration: const InputDecoration(labelText: 'Teléfono'),
+                    keyboardType: TextInputType.phone,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Teléfono obligatorio';
+                      }
+                      if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                        return 'Debe tener 10 dígitos';
+                      }
+                      return null;
+                    },
                   ),
-                  TextField(
+                  TextFormField(
                     controller: emailController,
                     maxLines: 1,
                     textInputAction: TextInputAction.done,
                     decoration: const InputDecoration(labelText: 'Email'),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Email obligatorio';
+                      }
+                      if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                        return 'Email inválido';
+                      }
+                      return null;
+                    },
                   ),
                 ],
               ),
@@ -774,6 +977,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAnthropometryForm,
+        child: const Icon(Icons.add),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: FutureBuilder<List<List<dynamic>>>(
@@ -868,8 +1075,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                               leading: const Icon(Icons.monitor_weight),
                               title: Text("Peso: ${item['weight']} kg"),
                               subtitle: Text(
-                                "IMC: ${item['body_mass_index']?.toStringAsFixed(2) ?? 'N/A'}"
-                                "\nFecha: ${_formatDate(item['created_at'])}",
+                                "IMC: ${item['body_mass_index']?.toStringAsFixed(2) ?? 'N/A'}\nFecha: ${_formatDate(item['created_at'])}",
                               ),
                               isThreeLine: true,
                             ),
@@ -883,7 +1089,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-
                   if (spots.isNotEmpty)
                     SizedBox(
                       height: 200,
@@ -942,7 +1147,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     )
                   else
                     const Text("No hay datos para gráfica"),
-
                   const SizedBox(height: 24),
                   const Text(
                     "Plan nutricional",
