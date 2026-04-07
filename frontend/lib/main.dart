@@ -512,13 +512,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       double calories = bmr * activityValue;
 
       if (goal == 'deficit') {
-        calories -= 300;
+        calories *= 0.8;
       } else if (goal == 'superavit') {
-        calories += 300;
+        calories *= 1.2;
       }
 
-      final protein = (calories * 0.30) / 4;
-      final carbs = (calories * 0.40) / 4;
+      final protein = (calories * 0.20) / 4;
+      final carbs = (calories * 0.50) / 4;
       final fats = (calories * 0.30) / 9;
       final heightMeters = height / 100;
       final imc = weight / (heightMeters * heightMeters);
@@ -641,19 +641,19 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           ),
                           DropdownMenuItem(
                             value: 1.375,
-                            child: Text('Ligero (1.375)'),
+                            child: Text('Ligero (1.375) - 1-3 días/semana'),
                           ),
                           DropdownMenuItem(
                             value: 1.55,
-                            child: Text('Moderado (1.55)'),
+                            child: Text('Moderado (1.55) - 3-5 días/semana'),
                           ),
                           DropdownMenuItem(
                             value: 1.725,
-                            child: Text('Intenso (1.725)'),
+                            child: Text('Intenso (1.725) - 6-7 días/semana'),
                           ),
                           DropdownMenuItem(
                             value: 1.9,
-                            child: Text('Muy intenso (1.9)'),
+                            child: Text('Muy intenso (1.9) - atleta'),
                           ),
                         ],
                         onChanged: (value) {
@@ -1191,24 +1191,31 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   if (latestPlan == null)
                     const Text("No hay planes nutricionales")
                   else
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Objetivo: ${latestPlan['goal']}"),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Calorías totales: ${latestPlan['total_calories']?.toStringAsFixed(2) ?? 'N/A'}",
+                    Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Objetivo: ${latestPlan['goal']}"),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Calorías totales: ${((latestPlan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
+                            ),
+                            Text(
+                              "Proteína: ${((latestPlan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                            ),
+                            Text(
+                              "Carbohidratos: ${((latestPlan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                            ),
+                            Text(
+                              "Grasas: ${((latestPlan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                            ),
+                            const SizedBox(height: 8),
+                            Text("Fecha: ${_formatDate(latestPlan['created_at'])}"),
+                          ],
                         ),
-                        Text(
-                          "Proteína: ${latestPlan['protein']?.toStringAsFixed(2) ?? 'N/A'} g",
-                        ),
-                        Text(
-                          "Carbohidratos: ${latestPlan['carbs']?.toStringAsFixed(2) ?? 'N/A'} g",
-                        ),
-                        Text(
-                          "Grasas: ${latestPlan['fats']?.toStringAsFixed(2) ?? 'N/A'} g",
-                        ),
-                      ],
+                      ),
                     ),
                 ],
               ),
