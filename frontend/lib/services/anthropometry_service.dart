@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AnthropometryService {
-  static const String baseUrl = 'http://localhost:8001/api/patients/';
+  static const String baseUrl = 'http://localhost:8001/api/anthropometries/';
 
   static Future<List<dynamic>> getAnthropometriesByPatient(int patientId) async {
     final response = await http.get(Uri.parse(baseUrl));

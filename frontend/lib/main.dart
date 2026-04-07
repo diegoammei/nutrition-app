@@ -465,7 +465,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final ageController = TextEditingController(
       text: widget.patient['age'].toString(),
     );
-    final activityController = TextEditingController();
+
     final formKey = GlobalKey<FormState>();
 
     final weightFocus = FocusNode();
@@ -476,6 +476,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     String gender = 'female';
     String goal = 'deficit';
 
+    double activity = 1.2;
     double? previewCalories;
     double? previewProtein;
     double? previewCarbs;
@@ -487,9 +488,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       final weight = double.tryParse(weightController.text);
       final height = double.tryParse(heightController.text);
       final age = int.tryParse(ageController.text);
-      final activity = double.tryParse(activityController.text);
+      final activityValue = activity;
 
-      if (weight == null || height == null || age == null || activity == null) {
+      if (weight == null || height == null || age == null) {
         setModalState(() {
           previewCalories = null;
           previewProtein = null;
@@ -508,7 +509,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
       }
 
-      double calories = bmr * activity;
+      double calories = bmr * activityValue;
 
       if (goal == 'deficit') {
         calories -= 300;
@@ -631,31 +632,37 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           return null;
                         },
                       ),
-                      TextFormField(
-                        controller: activityController,
-                        focusNode: activityFocus,
+                      DropdownButtonFormField<double>(
+                        value: activity,
+                        items: const [
+                          DropdownMenuItem(
+                            value: 1.2,
+                            child: Text('Sedentario (1.2)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 1.375,
+                            child: Text('Ligero (1.375)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 1.55,
+                            child: Text('Moderado (1.55)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 1.725,
+                            child: Text('Intenso (1.725)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 1.9,
+                            child: Text('Muy intenso (1.9)'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          activity = value!;
+                          calculatePreview(setModalState);
+                        },
                         decoration: const InputDecoration(
-                          labelText: 'Factor actividad (ej: 1.2)',
+                          labelText: 'Actividad',
                         ),
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).unfocus();
-                        },
-                        onChanged: (_) => calculatePreview(setModalState),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Factor de actividad obligatorio';
-                          }
-                          final activity = double.tryParse(value);
-                          if (activity == null) {
-                            return 'Debe ser número';
-                          }
-                          if (activity < 1.2 || activity > 2.5) {
-                            return 'Factor inválido';
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 10),
                       DropdownButtonFormField<String>(
@@ -748,9 +755,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       final weight = double.tryParse(weightController.text)!;
                       final height = double.tryParse(heightController.text)!;
                       final age = int.tryParse(ageController.text)!;
-                      final activity = double.tryParse(
-                        activityController.text,
-                      )!;
+                      final activityValue = activity;
 
                       await NutritionPlanService.createNutritionPlan(
                         patientId: widget.patient['id'],
@@ -758,7 +763,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         height: height,
                         age: age,
                         gender: gender,
-                        activityFactor: activity,
+                        activityFactor: activityValue,
                         goal: goal,
                       );
 
