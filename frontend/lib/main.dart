@@ -468,6 +468,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final activityController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
+    final weightFocus = FocusNode();
+    final heightFocus = FocusNode();
+    final ageFocus = FocusNode();
+    final activityFocus = FocusNode();
+
     String gender = 'female';
     String goal = 'deficit';
 
@@ -554,8 +559,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     children: [
                       TextFormField(
                         controller: weightController,
+                        focusNode: weightFocus,
                         decoration: const InputDecoration(labelText: 'Peso'),
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(heightFocus);
+                        },
                         onChanged: (_) => calculatePreview(setModalState),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -573,10 +583,15 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       ),
                       TextFormField(
                         controller: heightController,
+                        focusNode: heightFocus,
                         decoration: const InputDecoration(
                           labelText: 'Estatura',
                         ),
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(ageFocus);
+                        },
                         onChanged: (_) => calculatePreview(setModalState),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -594,8 +609,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       ),
                       TextFormField(
                         controller: ageController,
+                        focusNode: ageFocus,
                         decoration: const InputDecoration(labelText: 'Edad'),
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).requestFocus(activityFocus);
+                        },
                         onChanged: (_) => calculatePreview(setModalState),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -613,10 +633,15 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       ),
                       TextFormField(
                         controller: activityController,
+                        focusNode: activityFocus,
                         decoration: const InputDecoration(
                           labelText: 'Factor actividad (ej: 1.2)',
                         ),
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) {
+                          FocusScope.of(context).unfocus();
+                        },
                         onChanged: (_) => calculatePreview(setModalState),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
