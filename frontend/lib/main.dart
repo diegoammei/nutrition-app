@@ -473,7 +473,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final ageFocus = FocusNode();
     final activityFocus = FocusNode();
 
-    String gender = 'female';
+    String gender = widget.patient['gender'] ?? 'female';
     String goal = 'deficit';
 
     double activity = 1.2;
@@ -665,24 +665,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      DropdownButtonFormField<String>(
-                        value: gender,
-                        items: const [
-                          DropdownMenuItem(
-                            value: 'male',
-                            child: Text('Hombre'),
-                          ),
-                          DropdownMenuItem(
-                            value: 'female',
-                            child: Text('Mujer'),
-                          ),
-                        ],
-                        onChanged: (value) {
-                          gender = value!;
-                          calculatePreview(setModalState);
-                        },
-                        decoration: const InputDecoration(labelText: 'Género'),
-                      ),
                       DropdownButtonFormField<String>(
                         value: goal,
                         items: const [
@@ -1064,6 +1046,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   Text("Teléfono: ${widget.patient['phone'] ?? ''}"),
                   const SizedBox(height: 10),
                   Text("Edad: ${widget.patient['age']?.toString() ?? ''}"),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Género: ${widget.patient['gender'] == 'male' ? 'Hombre' : 'Mujer'}",
+                  ),
                   const SizedBox(height: 24),
                   const Text(
                     "Antropometría",
@@ -1188,34 +1174,57 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     child: const Text('Crear plan nutricional'),
                   ),
                   const SizedBox(height: 12),
-                  if (latestPlan == null)
+                  if (nutritionPlans.isEmpty)
                     const Text("No hay planes nutricionales")
                   else
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text("Objetivo: ${latestPlan['goal']}"),
-                            const SizedBox(height: 8),
-                            Text(
-                              "Calorías totales: ${((latestPlan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...nutritionPlans.reversed.map((plan) {
+                          final goalText = plan['goal'] == 'deficit'
+                              ? 'Déficit'
+                              : plan['goal'] == 'maintain'
+                              ? 'Mantenimiento'
+                              : plan['goal'] == 'superavit'
+                              ? 'Superávit'
+                              : (plan['goal'] ?? 'Sin objetivo');
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Objetivo: $goalText",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "Calorías totales: ${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
+                                  ),
+                                  Text(
+                                    "Proteína: ${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                                  ),
+                                  Text(
+                                    "Carbohidratos: ${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                                  ),
+                                  Text(
+                                    "Grasas: ${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "Fecha: ${_formatDate(plan['created_at'])}",
+                                  ),
+                                ],
+                              ),
                             ),
-                            Text(
-                              "Proteína: ${((latestPlan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                            ),
-                            Text(
-                              "Carbohidratos: ${((latestPlan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                            ),
-                            Text(
-                              "Grasas: ${((latestPlan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                            ),
-                            const SizedBox(height: 8),
-                            Text("Fecha: ${_formatDate(latestPlan['created_at'])}"),
-                          ],
-                        ),
-                      ),
+                          );
+                        }).toList(),
+                      ],
                     ),
                 ],
               ),
