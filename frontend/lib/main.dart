@@ -46,6 +46,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
   Future<void> _openCreatePatientForm() async {
     final nameController = TextEditingController();
     final ageController = TextEditingController();
+    final heightController = TextEditingController();
     final phoneController = TextEditingController();
     final emailController = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -97,6 +98,28 @@ class _PatientListScreenState extends State<PatientListScreen> {
                       }
                       if (age < 0 || age > 120) {
                         return 'Edad inválida';
+                      }
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: heightController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Estatura (cm)',
+                    ),
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Estatura obligatoria';
+                      }
+                      final height = double.tryParse(value);
+                      if (height == null) {
+                        return 'Debe ser número';
+                      }
+                      if (height < 100 || height > 250) {
+                        return 'Estatura inválida';
                       }
                       return null;
                     },
@@ -161,6 +184,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
                   await PatientService.createPatient(
                     name: nameController.text,
                     age: int.parse(ageController.text),
+                    height: double.parse(heightController.text),
                     gender: gender,
                     phone: phoneController.text,
                     email: emailController.text,
@@ -459,9 +483,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final weightController = TextEditingController(
       text: last != null ? last['weight'].toString() : '',
     );
-    final heightController = TextEditingController(
-      text: last != null ? last['height'].toString() : '',
-    );
     final ageController = TextEditingController(
       text: widget.patient['age'].toString(),
     );
@@ -469,7 +490,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final formKey = GlobalKey<FormState>();
 
     final weightFocus = FocusNode();
-    final heightFocus = FocusNode();
     final ageFocus = FocusNode();
     final activityFocus = FocusNode();
 
@@ -486,8 +506,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
     void calculatePreview(StateSetter setModalState) {
       final weight = double.tryParse(weightController.text);
-      final height = double.tryParse(heightController.text);
       final age = int.tryParse(ageController.text);
+      final height = (widget.patient['height'] as num?)?.toDouble();
       final activityValue = activity;
 
       if (weight == null || height == null || age == null) {
@@ -565,7 +585,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         keyboardType: TextInputType.number,
                         textInputAction: TextInputAction.next,
                         onFieldSubmitted: (_) {
-                          FocusScope.of(context).requestFocus(heightFocus);
+                          FocusScope.of(context).requestFocus(ageFocus);
                         },
                         onChanged: (_) => calculatePreview(setModalState),
                         validator: (value) {
@@ -578,32 +598,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           }
                           if (weight < 20 || weight > 300) {
                             return 'Peso fuera de rango';
-                          }
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: heightController,
-                        focusNode: heightFocus,
-                        decoration: const InputDecoration(
-                          labelText: 'Estatura',
-                        ),
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.next,
-                        onFieldSubmitted: (_) {
-                          FocusScope.of(context).requestFocus(ageFocus);
-                        },
-                        onChanged: (_) => calculatePreview(setModalState),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Estatura obligatoria';
-                          }
-                          final height = double.tryParse(value);
-                          if (height == null) {
-                            return 'Debe ser número';
-                          }
-                          if (height < 100 || height > 250) {
-                            return 'Estatura inválida';
                           }
                           return null;
                         },
@@ -735,7 +729,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     if (!formKey.currentState!.validate()) return;
                     try {
                       final weight = double.tryParse(weightController.text)!;
-                      final height = double.tryParse(heightController.text)!;
+                      final height = (widget.patient['height'] as num)
+                          .toDouble();
                       final age = int.tryParse(ageController.text)!;
                       final activityValue = activity;
 
@@ -776,6 +771,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     final nameController = TextEditingController(text: widget.patient['name']);
     final ageController = TextEditingController(
       text: widget.patient['age'].toString(),
+    );
+    final heightController = TextEditingController(
+      text: widget.patient['height']?.toString() ?? '',
     );
     final phoneController = TextEditingController(
       text: widget.patient['phone'],
@@ -839,14 +837,27 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
-                  DropdownButtonFormField<String>(
-                    value: gender,
-                    items: const [
-                      DropdownMenuItem(value: 'male', child: Text('Hombre')),
-                      DropdownMenuItem(value: 'female', child: Text('Mujer')),
-                    ],
-                    onChanged: (value) => gender = value!,
-                    decoration: const InputDecoration(labelText: 'Género'),
+                  TextFormField(
+                    controller: heightController,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.next,
+                    decoration: const InputDecoration(
+                      labelText: 'Estatura (cm)',
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Estatura obligatoria';
+                      }
+                      final height = double.tryParse(value);
+                      if (height == null) {
+                        return 'Debe ser número';
+                      }
+                      if (height < 100 || height > 250) {
+                        return 'Estatura inválida';
+                      }
+                      return null;
+                    },
                   ),
                   TextFormField(
                     controller: phoneController,
@@ -897,6 +908,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     id: widget.patient['id'],
                     name: nameController.text,
                     age: int.parse(ageController.text),
+                    height: double.parse(heightController.text),
                     gender: gender,
                     phone: phoneController.text,
                     email: emailController.text,
@@ -912,6 +924,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   setState(() {
                     widget.patient['name'] = nameController.text;
                     widget.patient['age'] = int.parse(ageController.text);
+                    widget.patient['height'] = double.parse(
+                      heightController.text,
+                    );
                     widget.patient['phone'] = phoneController.text;
                     widget.patient['email'] = emailController.text;
                     widget.patient['gender'] = gender;
@@ -1050,6 +1065,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   Text(
                     "Género: ${widget.patient['gender'] == 'male' ? 'Hombre' : 'Mujer'}",
                   ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Estatura: ${widget.patient['height']?.toString() ?? 'N/A'} cm",
+                  ),
+                  const SizedBox(height: 24),
                   const SizedBox(height: 24),
                   const Text(
                     "Antropometría",

@@ -17,6 +17,7 @@ class PatientService {
   static Future<void> createPatient({
     required String name,
     required int age,
+    required double height,
     required String gender,
     required String phone,
     required String email,
@@ -27,6 +28,7 @@ class PatientService {
       body: jsonEncode({
         'name': name,
         'age': age,
+        'height': height,
         'gender': gender,
         'phone': phone,
         'email': email,
@@ -42,6 +44,7 @@ class PatientService {
     required int id,
     required String name,
     required int age,
+    required double height,
     required String gender,
     required String phone,
     required String email,
