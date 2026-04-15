@@ -4,6 +4,7 @@ import 'services/anthropometry_service.dart';
 import 'services/nutrition_plan_service.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'services/pdf_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1040,9 +1041,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             final latestAnthro = anthropometries.isNotEmpty
                 ? anthropometries.last
                 : null;
-            final latestPlan = nutritionPlans.isNotEmpty
+            /*final latestPlan = nutritionPlans.isNotEmpty
                 ? nutritionPlans.last
-                : null;
+                : null;*/
 
             return SingleChildScrollView(
               child: Column(
@@ -1238,6 +1239,69 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   const SizedBox(height: 8),
                                   Text(
                                     "Fecha: ${_formatDate(plan['created_at'])}",
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      final calories =
+                                          (plan['total_calories'] as num?)
+                                              ?.toDouble() ??
+                                          0;
+                                      final protein =
+                                          (plan['protein'] as num?)
+                                              ?.toDouble() ??
+                                          0;
+                                      final carbs =
+                                          (plan['carbs'] as num?)?.toDouble() ??
+                                          0;
+                                      final fats =
+                                          (plan['fats'] as num?)?.toDouble() ??
+                                          0;
+
+                                      final imc = latestAnthro != null
+                                          ? (latestAnthro['body_mass_index']
+                                                    as num?)
+                                                ?.toDouble()
+                                          : null;
+
+                                      final height =
+                                          (widget.patient['height'] as num?)
+                                              ?.toDouble();
+
+                                      final weight = latestAnthro != null
+                                          ? (latestAnthro['weight'] as num?)
+                                                ?.toDouble()
+                                          : null;
+
+                                      final age = widget.patient['age'] is int
+                                          ? widget.patient['age'] as int
+                                          : int.tryParse(
+                                              widget.patient['age']
+                                                      ?.toString() ??
+                                                  '',
+                                            );
+
+                                      PdfService.generateNutritionPlanPdf(
+                                        patientName:
+                                            widget.patient['name']
+                                                ?.toString() ??
+                                            'Paciente',
+                                        goal: goalText,
+                                        calories: calories,
+                                        protein: protein,
+                                        carbs: carbs,
+                                        fats: fats,
+                                        imc: imc,
+                                        gender:
+                                            widget.patient['gender'] == 'male'
+                                            ? 'Hombre'
+                                            : 'Mujer',
+                                        height: height,
+                                        age: age,
+                                        weight: weight,
+                                      );
+                                    },
+                                    child: const Text('Generar PDF'),
                                   ),
                                 ],
                               ),
