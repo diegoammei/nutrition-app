@@ -5,6 +5,7 @@ import 'services/nutrition_plan_service.dart';
 import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'services/pdf_service.dart';
+import 'services/menu_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -860,6 +861,17 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+                  DropdownButtonFormField<String>(
+                    initialValue: gender,
+                    items: const [
+                      DropdownMenuItem(value: 'male', child: Text('Hombre')),
+                      DropdownMenuItem(value: 'female', child: Text('Mujer')),
+                    ],
+                    onChanged: (value) {
+                      gender = value!;
+                    },
+                    decoration: const InputDecoration(labelText: 'Género'),
+                  ),
                   TextFormField(
                     controller: phoneController,
                     maxLines: 1,
@@ -1071,7 +1083,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     "Estatura: ${widget.patient['height']?.toString() ?? 'N/A'} cm",
                   ),
                   const SizedBox(height: 24),
-                  const SizedBox(height: 24),
                   const Text(
                     "Antropometría",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -1209,6 +1220,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                               : plan['goal'] == 'superavit'
                               ? 'Superávit'
                               : (plan['goal'] ?? 'Sin objetivo');
+                          final calories =
+                              (plan['total_calories'] as num?)?.toDouble() ?? 0;
+                          final menu = MenuService.generateMenu(calories);
 
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
@@ -1240,68 +1254,179 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   Text(
                                     "Fecha: ${_formatDate(plan['created_at'])}",
                                   ),
+                                  const SizedBox(height: 12),
+                                  const Text(
+                                    'Menú sugerido',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+
+                                  ...menu.entries.map((entry) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            entry.key,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          ...entry.value.map(
+                                            (item) => Text('• $item'),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  }).toList(),
                                   const SizedBox(height: 10),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      final calories =
-                                          (plan['total_calories'] as num?)
-                                              ?.toDouble() ??
-                                          0;
-                                      final protein =
-                                          (plan['protein'] as num?)
-                                              ?.toDouble() ??
-                                          0;
-                                      final carbs =
-                                          (plan['carbs'] as num?)?.toDouble() ??
-                                          0;
-                                      final fats =
-                                          (plan['fats'] as num?)?.toDouble() ??
-                                          0;
+                                  Row(
+                                    children: [
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          final calories =
+                                              (plan['total_calories'] as num?)
+                                                  ?.toDouble() ??
+                                              0;
+                                          final protein =
+                                              (plan['protein'] as num?)
+                                                  ?.toDouble() ??
+                                              0;
+                                          final carbs =
+                                              (plan['carbs'] as num?)
+                                                  ?.toDouble() ??
+                                              0;
+                                          final fats =
+                                              (plan['fats'] as num?)
+                                                  ?.toDouble() ??
+                                              0;
 
-                                      final imc = latestAnthro != null
-                                          ? (latestAnthro['body_mass_index']
-                                                    as num?)
-                                                ?.toDouble()
-                                          : null;
+                                          final imc = latestAnthro != null
+                                              ? (latestAnthro['body_mass_index']
+                                                        as num?)
+                                                    ?.toDouble()
+                                              : null;
 
-                                      final height =
-                                          (widget.patient['height'] as num?)
-                                              ?.toDouble();
+                                          final height =
+                                              (widget.patient['height'] as num?)
+                                                  ?.toDouble();
 
-                                      final weight = latestAnthro != null
-                                          ? (latestAnthro['weight'] as num?)
-                                                ?.toDouble()
-                                          : null;
+                                          final weight = latestAnthro != null
+                                              ? (latestAnthro['weight'] as num?)
+                                                    ?.toDouble()
+                                              : null;
 
-                                      final age = widget.patient['age'] is int
-                                          ? widget.patient['age'] as int
-                                          : int.tryParse(
-                                              widget.patient['age']
-                                                      ?.toString() ??
-                                                  '',
+                                          final age =
+                                              widget.patient['age'] is int
+                                              ? widget.patient['age'] as int
+                                              : int.tryParse(
+                                                  widget.patient['age']
+                                                          ?.toString() ??
+                                                      '',
+                                                );
+
+                                          PdfService.generateNutritionPlanPdf(
+                                            patientName:
+                                                widget.patient['name']
+                                                    ?.toString() ??
+                                                'Paciente',
+                                            goal: goalText,
+                                            calories: calories,
+                                            protein: protein,
+                                            carbs: carbs,
+                                            fats: fats,
+                                            imc: imc,
+                                            gender:
+                                                widget.patient['gender'] ==
+                                                    'male'
+                                                ? 'Hombre'
+                                                : 'Mujer',
+                                            height: height,
+                                            age: age,
+                                            weight: weight,
+                                          );
+                                        },
+                                        child: const Text('Generar PDF'),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      ElevatedButton(
+                                        onPressed: () async {
+                                          final confirmed = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text(
+                                                  'Eliminar plan nutricional',
+                                                ),
+                                                content: const Text(
+                                                  '¿Seguro que quieres eliminar este plan nutricional?',
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          context,
+                                                          false,
+                                                        ),
+                                                    child: const Text(
+                                                      'Cancelar',
+                                                    ),
+                                                  ),
+                                                  ElevatedButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(
+                                                          context,
+                                                          true,
+                                                        ),
+                                                    child: const Text(
+                                                      'Eliminar',
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+
+                                          if (confirmed != true) return;
+
+                                          try {
+                                            await NutritionPlanService.deleteNutritionPlan(
+                                              plan['id'],
                                             );
 
-                                      PdfService.generateNutritionPlanPdf(
-                                        patientName:
-                                            widget.patient['name']
-                                                ?.toString() ??
-                                            'Paciente',
-                                        goal: goalText,
-                                        calories: calories,
-                                        protein: protein,
-                                        carbs: carbs,
-                                        fats: fats,
-                                        imc: imc,
-                                        gender:
-                                            widget.patient['gender'] == 'male'
-                                            ? 'Hombre'
-                                            : 'Mujer',
-                                        height: height,
-                                        age: age,
-                                        weight: weight,
-                                      );
-                                    },
-                                    child: const Text('Generar PDF'),
+                                            if (!mounted) return;
+
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Plan nutricional eliminado',
+                                                ),
+                                              ),
+                                            );
+
+                                            setState(() {
+                                              _loadData();
+                                            });
+                                          } catch (e) {
+                                            if (!mounted) return;
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Error: $e'),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        child: const Text('Eliminar'),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),

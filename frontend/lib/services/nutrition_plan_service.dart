@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 class NutritionPlanService {
   static const String baseUrl = 'http://127.0.0.1:8001/api/nutrition-plans/';
 
-  // 👇 ESTE YA LO TENÍAS
   static Future<List<dynamic>> getNutritionPlansByPatient(int patientId) async {
     final response = await http.get(Uri.parse(baseUrl));
 
@@ -16,7 +15,7 @@ class NutritionPlanService {
     }
   }
 
-    static Future<void> createNutritionPlan({
+  static Future<void> createNutritionPlan({
     required int patientId,
     required double weight,
     required double height,
@@ -41,6 +40,16 @@ class NutritionPlanService {
 
     if (response.statusCode != 201) {
       throw Exception('Error al crear plan nutricional');
+    }
+  }
+
+  static Future<void> deleteNutritionPlan(int planId) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl$planId/'),
+    );
+
+    if (response.statusCode != 204) {
+      throw Exception('Error al eliminar plan nutricional');
     }
   }
 }
