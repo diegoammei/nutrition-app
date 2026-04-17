@@ -18,7 +18,6 @@ class PdfService {
     double? height,
     int? age,
     double? weight,
-    
   }) async {
     final pdf = pw.Document();
     final formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
@@ -65,8 +64,10 @@ class PdfService {
               pw.Text('Paciente: $patientName'),
               if (age != null) pw.Text('Edad: $age años'),
               if (gender != null) pw.Text('Género: $gender'),
-              if (height != null) pw.Text('Estatura: ${height.toStringAsFixed(0)} cm'),
-              if (weight != null) pw.Text('Peso actual: ${weight.toStringAsFixed(1)} kg'),
+              if (height != null)
+                pw.Text('Estatura: ${height.toStringAsFixed(0)} cm'),
+              if (weight != null)
+                pw.Text('Peso actual: ${weight.toStringAsFixed(1)} kg'),
               if (imc != null) pw.Text('IMC: ${imc.toStringAsFixed(2)}'),
 
               pw.SizedBox(height: 20),
@@ -119,6 +120,35 @@ class PdfService {
 
               pw.SizedBox(height: 24),
 
+              pw.SizedBox(height: 24),
+
+              pw.Text(
+                'Menú sugerido',
+                style: pw.TextStyle(
+                  fontSize: 16,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+
+              pw.SizedBox(height: 10),
+
+              ...menu.entries.map((entry) {
+                return pw.Padding(
+                  padding: const pw.EdgeInsets.only(bottom: 10),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        entry.key,
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.SizedBox(height: 4),
+                      ...entry.value.map((item) => pw.Text('• $item')),
+                    ],
+                  ),
+                );
+              }).toList(),
+
               pw.Text(
                 'Observaciones',
                 style: pw.TextStyle(
@@ -148,22 +178,14 @@ class PdfService {
       ),
     );
 
-    await Printing.layoutPdf(
-      onLayout: (format) async => pdf.save(),
-    );
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
   static pw.TableRow _buildRow(String label, String value) {
     return pw.TableRow(
       children: [
-        pw.Padding(
-          padding: const pw.EdgeInsets.all(8),
-          child: pw.Text(label),
-        ),
-        pw.Padding(
-          padding: const pw.EdgeInsets.all(8),
-          child: pw.Text(value),
-        ),
+        pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(label)),
+        pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(value)),
       ],
     );
   }

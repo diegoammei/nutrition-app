@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'services/pdf_service.dart';
 import 'services/menu_service.dart';
+import 'services/appointment_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -289,6 +290,7 @@ class PatientDetailScreen extends StatefulWidget {
 class _PatientDetailScreenState extends State<PatientDetailScreen> {
   late Future<List<dynamic>> _anthropometriesFuture;
   late Future<List<dynamic>> _nutritionPlansFuture;
+  late Future<List<dynamic>> _appointmentsFuture;
 
   @override
   void initState() {
@@ -323,6 +325,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       widget.patient['id'],
     );
     _nutritionPlansFuture = NutritionPlanService.getNutritionPlansByPatient(
+      widget.patient['id'],
+    );
+    _appointmentsFuture = AppointmentService.getAppointmentsByPatient(
       widget.patient['id'],
     );
   }
@@ -769,6 +774,120 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
+  Future<void> _openAppointmentForm() async {
+    final notesController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    DateTime selectedDate = DateTime.now();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: const Text('Agregar cita'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Fecha y hora'),
+                        subtitle: Text(
+                          _formatDate(selectedDate.toIso8601String()),
+                        ),
+                        trailing: const Icon(Icons.calendar_month),
+                        onTap: () async {
+                          final pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now().subtract(
+                              const Duration(days: 365),
+                            ),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365 * 5),
+                            ),
+                          );
+
+                          if (pickedDate == null) return;
+
+                          final pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(selectedDate),
+                          );
+
+                          if (pickedTime == null) return;
+
+                          setModalState(() {
+                            selectedDate = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+                          });
+                        },
+                      ),
+                      TextFormField(
+                        controller: notesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Notas (opcional)',
+                        ),
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    try {
+                      await AppointmentService.createAppointment(
+                        patientId: widget.patient['id'],
+                        date: selectedDate.toIso8601String(),
+                        notes: notesController.text.trim().isEmpty
+                            ? null
+                            : notesController.text.trim(),
+                      );
+
+                      if (!mounted) return;
+                      Navigator.pop(context);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Cita creada correctamente'),
+                        ),
+                      );
+
+                      setState(() {
+                        _loadData();
+                      });
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                    }
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _openEditPatientForm() async {
     final nameController = TextEditingController(text: widget.patient['name']);
     final ageController = TextEditingController(
@@ -1027,6 +1146,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           future: Future.wait<List<dynamic>>([
             _anthropometriesFuture,
             _nutritionPlansFuture,
+            _appointmentsFuture,
           ]),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -1039,6 +1159,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
             final anthropometries = snapshot.data?[0] ?? [];
             final nutritionPlans = snapshot.data?[1] ?? [];
+            final appointments = snapshot.data?[2] ?? [];
 
             final spots = anthropometries.asMap().entries.map((entry) {
               final index = entry.key;
@@ -1348,7 +1469,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                           protein: protein,
                                           carbs: carbs,
                                           fats: fats,
-                                          menu : menu,
+                                          menu: menu,
                                           imc: imc,
                                           gender:
                                               widget.patient['gender'] == 'male'
@@ -1434,6 +1555,100 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   ],
                                 ),
                               ],
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Citas",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton(
+                    onPressed: _openAppointmentForm,
+                    child: const Text('Agregar cita'),
+                  ),
+                  const SizedBox(height: 12),
+                  if (appointments.isEmpty)
+                    const Text("No hay citas registradas")
+                  else
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...appointments.map((appointment) {
+                          final statusText =
+                              appointment['status'] == 'completed'
+                              ? 'Completada'
+                              : appointment['status'] == 'cancelled'
+                              ? 'Cancelada'
+                              : 'Pendiente';
+
+                          return Card(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            child: ListTile(
+                              title: Text(_formatDate(appointment['date'])),
+                              subtitle: Text(
+                                'Estado: $statusText'
+                                '${appointment['notes'] != null && appointment['notes'].toString().isNotEmpty ? '\nNotas: ${appointment['notes']}' : ''}',
+                              ),
+                              isThreeLine:
+                                  appointment['notes'] != null &&
+                                  appointment['notes'].toString().isNotEmpty,
+                              trailing: IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  final confirmed = await showDialog<bool>(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: const Text('Eliminar cita'),
+                                        content: const Text(
+                                          '¿Seguro que quieres eliminar esta cita?',
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text('Cancelar'),
+                                          ),
+                                          ElevatedButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            child: const Text('Eliminar'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+
+                                  if (confirmed != true) return;
+
+                                  try {
+                                    await AppointmentService.deleteAppointment(
+                                      appointment['id'],
+                                    );
+
+                                    if (!mounted) return;
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Cita eliminada'),
+                                      ),
+                                    );
+
+                                    setState(() {
+                                      _loadData();
+                                    });
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Error: $e')),
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                           );
                         }).toList(),
