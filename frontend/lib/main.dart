@@ -302,7 +302,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     if (dateString == null || dateString.isEmpty) return 'Sin fecha';
 
     try {
-      final date = DateTime.parse(dateString);
+      final date = DateTime.parse(dateString).toLocal();
       return DateFormat('dd/MM/yyyy HH:mm').format(date);
     } catch (e) {
       return dateString;
@@ -313,7 +313,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     if (dateString == null || dateString.isEmpty) return '';
 
     try {
-      final date = DateTime.parse(dateString);
+      final date = DateTime.parse(dateString).toLocal();
       return DateFormat('dd/MM').format(date);
     } catch (e) {
       return '';
