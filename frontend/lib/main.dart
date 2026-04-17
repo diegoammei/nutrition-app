@@ -1348,6 +1348,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                           protein: protein,
                                           carbs: carbs,
                                           fats: fats,
+                                          menu : menu,
                                           imc: imc,
                                           gender:
                                               widget.patient['gender'] == 'male'

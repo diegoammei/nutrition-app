@@ -11,11 +11,14 @@ class PdfService {
     required double protein,
     required double carbs,
     required double fats,
+    required Map<String, List<String>> menu,
+
     double? imc,
     String? gender,
     double? height,
     int? age,
     double? weight,
+    
   }) async {
     final pdf = pw.Document();
     final formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
