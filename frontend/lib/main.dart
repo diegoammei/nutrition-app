@@ -1226,210 +1226,208 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Objetivo: $goalText",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "Calorías totales: ${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
-                                  ),
-                                  Text(
-                                    "Proteína: ${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                                  ),
-                                  Text(
-                                    "Carbohidratos: ${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                                  ),
-                                  Text(
-                                    "Grasas: ${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "Fecha: ${_formatDate(plan['created_at'])}",
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    'Menú sugerido',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  ...menu.entries.map((entry) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            entry.key,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          ...entry.value.map(
-                                            (item) => Text('• $item'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          final calories =
-                                              (plan['total_calories'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-                                          final protein =
-                                              (plan['protein'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-                                          final carbs =
-                                              (plan['carbs'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-                                          final fats =
-                                              (plan['fats'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-
-                                          final imc = latestAnthro != null
-                                              ? (latestAnthro['body_mass_index']
-                                                        as num?)
-                                                    ?.toDouble()
-                                              : null;
-
-                                          final height =
-                                              (widget.patient['height'] as num?)
-                                                  ?.toDouble();
-
-                                          final weight = latestAnthro != null
-                                              ? (latestAnthro['weight'] as num?)
-                                                    ?.toDouble()
-                                              : null;
-
-                                          final age =
-                                              widget.patient['age'] is int
-                                              ? widget.patient['age'] as int
-                                              : int.tryParse(
-                                                  widget.patient['age']
-                                                          ?.toString() ??
-                                                      '',
-                                                );
-
-                                          PdfService.generateNutritionPlanPdf(
-                                            patientName:
-                                                widget.patient['name']
-                                                    ?.toString() ??
-                                                'Paciente',
-                                            goal: goalText,
-                                            calories: calories,
-                                            protein: protein,
-                                            carbs: carbs,
-                                            fats: fats,
-                                            imc: imc,
-                                            gender:
-                                                widget.patient['gender'] ==
-                                                    'male'
-                                                ? 'Hombre'
-                                                : 'Mujer',
-                                            height: height,
-                                            age: age,
-                                            weight: weight,
-                                          );
-                                        },
-                                        child: const Text('Generar PDF'),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          final confirmed = await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) {
-                                              return AlertDialog(
-                                                title: const Text(
-                                                  'Eliminar plan nutricional',
-                                                ),
-                                                content: const Text(
-                                                  '¿Seguro que quieres eliminar este plan nutricional?',
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.pop(
-                                                          context,
-                                                          false,
-                                                        ),
-                                                    child: const Text(
-                                                      'Cancelar',
-                                                    ),
-                                                  ),
-                                                  ElevatedButton(
-                                                    onPressed: () =>
-                                                        Navigator.pop(
-                                                          context,
-                                                          true,
-                                                        ),
-                                                    child: const Text(
-                                                      'Eliminar',
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-
-                                          if (confirmed != true) return;
-
-                                          try {
-                                            await NutritionPlanService.deleteNutritionPlan(
-                                              plan['id'],
-                                            );
-
-                                            if (!mounted) return;
-
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Plan nutricional eliminado',
-                                                ),
-                                              ),
-                                            );
-
-                                            setState(() {
-                                              _loadData();
-                                            });
-                                          } catch (e) {
-                                            if (!mounted) return;
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text('Error: $e'),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        child: const Text('Eliminar'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                            child: ExpansionTile(
+                              title: Text(
+                                "Objetivo: $goalText",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
+                              subtitle: Text(
+                                "${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal • ${_formatDate(plan['created_at'])}",
+                              ),
+                              childrenPadding: const EdgeInsets.all(12),
+                              children: [
+                                Text(
+                                  "Objetivo: $goalText",
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Calorías totales: ${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
+                                ),
+                                Text(
+                                  "Proteína: ${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                                ),
+                                Text(
+                                  "Carbohidratos: ${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                                ),
+                                Text(
+                                  "Grasas: ${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "Fecha: ${_formatDate(plan['created_at'])}",
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Menú sugerido',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+
+                                ...menu.entries.map((entry) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          entry.key,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        ...entry.value.map(
+                                          (item) => Text('• $item'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                                const SizedBox(height: 10),
+                                Row(
+                                  children: [
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        final calories =
+                                            (plan['total_calories'] as num?)
+                                                ?.toDouble() ??
+                                            0;
+                                        final protein =
+                                            (plan['protein'] as num?)
+                                                ?.toDouble() ??
+                                            0;
+                                        final carbs =
+                                            (plan['carbs'] as num?)
+                                                ?.toDouble() ??
+                                            0;
+                                        final fats =
+                                            (plan['fats'] as num?)
+                                                ?.toDouble() ??
+                                            0;
+
+                                        final imc = latestAnthro != null
+                                            ? (latestAnthro['body_mass_index']
+                                                      as num?)
+                                                  ?.toDouble()
+                                            : null;
+
+                                        final height =
+                                            (widget.patient['height'] as num?)
+                                                ?.toDouble();
+
+                                        final weight = latestAnthro != null
+                                            ? (latestAnthro['weight'] as num?)
+                                                  ?.toDouble()
+                                            : null;
+
+                                        final age = widget.patient['age'] is int
+                                            ? widget.patient['age'] as int
+                                            : int.tryParse(
+                                                widget.patient['age']
+                                                        ?.toString() ??
+                                                    '',
+                                              );
+
+                                        PdfService.generateNutritionPlanPdf(
+                                          patientName:
+                                              widget.patient['name']
+                                                  ?.toString() ??
+                                              'Paciente',
+                                          goal: goalText,
+                                          calories: calories,
+                                          protein: protein,
+                                          carbs: carbs,
+                                          fats: fats,
+                                          imc: imc,
+                                          gender:
+                                              widget.patient['gender'] == 'male'
+                                              ? 'Hombre'
+                                              : 'Mujer',
+                                          height: height,
+                                          age: age,
+                                          weight: weight,
+                                        );
+                                      },
+                                      child: const Text('Generar PDF'),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final confirmed = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: const Text(
+                                                'Eliminar plan nutricional',
+                                              ),
+                                              content: const Text(
+                                                '¿Seguro que quieres eliminar este plan nutricional?',
+                                              ),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        context,
+                                                        false,
+                                                      ),
+                                                  child: const Text('Cancelar'),
+                                                ),
+                                                ElevatedButton(
+                                                  onPressed: () =>
+                                                      Navigator.pop(
+                                                        context,
+                                                        true,
+                                                      ),
+                                                  child: const Text('Eliminar'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+
+                                        if (confirmed != true) return;
+
+                                        try {
+                                          await NutritionPlanService.deleteNutritionPlan(
+                                            plan['id'],
+                                          );
+
+                                          if (!mounted) return;
+
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Plan nutricional eliminado',
+                                              ),
+                                            ),
+                                          );
+
+                                          setState(() {
+                                            _loadData();
+                                          });
+                                        } catch (e) {
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: const Text('Eliminar'),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           );
                         }).toList(),
