@@ -1212,7 +1212,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ...nutritionPlans.reversed.map((plan) {
+                        ...nutritionPlans.reversed.toList().asMap().entries.map((
+                          entry,
+                        ) {
+                          final index = entry.key;
+                          final plan = entry.value;
                           final goalText = plan['goal'] == 'deficit'
                               ? 'Déficit'
                               : plan['goal'] == 'maintain'
@@ -1227,6 +1231,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: ExpansionTile(
+                              initiallyExpanded: index == 0,
                               title: Text(
                                 "Objetivo: $goalText",
                                 style: const TextStyle(
