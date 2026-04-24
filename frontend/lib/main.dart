@@ -55,6 +55,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
     final formKey = GlobalKey<FormState>();
 
     String gender = 'female';
+    String pathology = 'none';
 
     await showDialog(
       context: context,
@@ -138,6 +139,48 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     },
                     decoration: const InputDecoration(labelText: 'Género'),
                   ),
+                  const SizedBox(height: 12),
+
+                  DropdownButtonFormField<String>(
+                    initialValue: pathology,
+                    items: const [
+                      DropdownMenuItem(value: 'none', child: Text('Ninguna')),
+                      DropdownMenuItem(
+                        value: 'diabetes',
+                        child: Text('Diabetes'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'hypertension',
+                        child: Text('Hipertensión'),
+                      ),
+                      DropdownMenuItem(value: 'cancer', child: Text('Cáncer')),
+                      DropdownMenuItem(
+                        value: 'malnutrition',
+                        child: Text('Desnutrición'),
+                      ),
+                      DropdownMenuItem(value: 'anemia', child: Text('Anemia')),
+                      DropdownMenuItem(
+                        value: 'muscle_gain',
+                        child: Text('Aumento masa muscular'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'dyslipidemia',
+                        child: Text('Dislipidemia'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'gastritis',
+                        child: Text('Gastritis'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'colitis',
+                        child: Text('Colitis'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      pathology = value!;
+                    },
+                    decoration: const InputDecoration(labelText: 'Patología'),
+                  ),
                   TextFormField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
@@ -191,6 +234,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     gender: gender,
                     phone: phoneController.text,
                     email: emailController.text,
+                    pathology: pathology,
                   );
 
                   if (!mounted) return;
