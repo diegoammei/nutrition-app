@@ -954,6 +954,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         ? 'female'
         : (widget.patient['gender'] ?? 'female');
 
+    String pathology = widget.patient['pathology'] ?? 'none';
+
     await showDialog(
       context: context,
       builder: (context) {
@@ -1035,6 +1037,49 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     },
                     decoration: const InputDecoration(labelText: 'Género'),
                   ),
+
+                  const SizedBox(height: 12),
+
+                  DropdownButtonFormField<String>(
+                    initialValue: pathology,
+                    items: const [
+                      DropdownMenuItem(value: 'none', child: Text('Ninguna')),
+                      DropdownMenuItem(
+                        value: 'diabetes',
+                        child: Text('Diabetes'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'hypertension',
+                        child: Text('Hipertensión'),
+                      ),
+                      DropdownMenuItem(value: 'cancer', child: Text('Cáncer')),
+                      DropdownMenuItem(
+                        value: 'malnutrition',
+                        child: Text('Desnutrición'),
+                      ),
+                      DropdownMenuItem(value: 'anemia', child: Text('Anemia')),
+                      DropdownMenuItem(
+                        value: 'muscle_gain',
+                        child: Text('Aumento masa muscular'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'dyslipidemia',
+                        child: Text('Dislipidemia'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'gastritis',
+                        child: Text('Gastritis'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'colitis',
+                        child: Text('Colitis'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      pathology = value!;
+                    },
+                    decoration: const InputDecoration(labelText: 'Patología'),
+                  ),
                   TextFormField(
                     controller: phoneController,
                     maxLines: 1,
@@ -1088,6 +1133,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     gender: gender,
                     phone: phoneController.text,
                     email: emailController.text,
+                    pathology: pathology,
                   );
 
                   if (!mounted) return;
@@ -1106,6 +1152,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     widget.patient['phone'] = phoneController.text;
                     widget.patient['email'] = emailController.text;
                     widget.patient['gender'] = gender;
+                    widget.patient['pathology'] = pathology;
                   });
                 } catch (e) {
                   if (!mounted) return;

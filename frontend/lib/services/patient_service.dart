@@ -50,6 +50,8 @@ class PatientService {
     required String gender,
     required String phone,
     required String email,
+    required String pathology,
+
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$id/'),
@@ -60,6 +62,8 @@ class PatientService {
         'gender': gender,
         'phone': phone,
         'email': email,
+        'pathology': pathology,
+
       }),
     );
 
