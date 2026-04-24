@@ -342,6 +342,31 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     _loadData();
   }
 
+  String _getPathologyText(String? pathology) {
+    switch (pathology) {
+      case 'diabetes':
+        return 'Diabetes';
+      case 'hypertension':
+        return 'Hipertensión';
+      case 'cancer':
+        return 'Cáncer';
+      case 'malnutrition':
+        return 'Desnutrición';
+      case 'anemia':
+        return 'Anemia';
+      case 'muscle_gain':
+        return 'Aumento masa muscular';
+      case 'dyslipidemia':
+        return 'Dislipidemia';
+      case 'gastritis':
+        return 'Gastritis';
+      case 'colitis':
+        return 'Colitis';
+      default:
+        return 'Ninguna';
+    }
+  }
+
   String _formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return 'Sin fecha';
 
@@ -1293,6 +1318,10 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   const SizedBox(height: 10),
                   Text(
                     "Estatura: ${widget.patient['height']?.toString() ?? 'N/A'} cm",
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    "Patología: ${_getPathologyText(widget.patient['pathology'])}",
                   ),
                   const SizedBox(height: 24),
                   const Text(
