@@ -7,6 +7,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'services/pdf_service.dart';
 import 'services/menu_service.dart';
 import 'services/appointment_service.dart';
+import 'services/equivalent_plan_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -263,8 +264,6 @@ class _PatientListScreenState extends State<PatientListScreen> {
       },
     );
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -1492,6 +1491,18 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                               (plan['total_calories'] as num?)?.toDouble() ?? 0;
                           final menu = MenuService.generateMenu(calories);
 
+                          final dailyEquivalents =
+                              EquivalentPlanService.calculateDailyEquivalents(
+                                calories: calories,
+                                pathology:
+                                    widget.patient['pathology'] ?? 'none',
+                              );
+
+                          final mealDistribution =
+                              EquivalentPlanService.distributeByMeal(
+                                dailyEquivalents: dailyEquivalents,
+                              );
+
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: ExpansionTile(
@@ -1541,6 +1552,54 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   "Fecha: ${_formatDate(plan['created_at'])}",
                                 ),
                                 const SizedBox(height: 12),
+
+                                const SizedBox(height: 12),
+
+                                const Text(
+                                  'Equivalentes diarios',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+
+                                const SizedBox(height: 6),
+
+                                ...dailyEquivalents.entries.map((entry) {
+                                  return Text('${entry.key}: ${entry.value}');
+                                }).toList(),
+
+                                const SizedBox(height: 12),
+
+                                const Text(
+                                  'Distribución por horarios',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+
+                                const SizedBox(height: 6),
+
+                                ...mealDistribution.entries.map((mealEntry) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          mealEntry.key,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        ...mealEntry.value.entries
+                                            .where((item) => item.value > 0)
+                                            .map(
+                                              (item) => Text(
+                                                '${item.key}: ${item.value}',
+                                              ),
+                                            ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                                
                                 const Text(
                                   'Menú sugerido',
                                   style: TextStyle(fontWeight: FontWeight.bold),
