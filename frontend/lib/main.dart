@@ -264,6 +264,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
     );
   }
 
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -364,6 +366,27 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         return 'Colitis';
       default:
         return 'Ninguna';
+    }
+  }
+
+  String _getPathologyRecommendation(String? pathology) {
+    switch (pathology) {
+      case 'diabetes':
+        return 'Priorizar carbohidratos complejos, evitar bebidas azucaradas y distribuir carbohidratos durante el día.';
+      case 'hypertension':
+        return 'Reducir sodio, evitar embutidos y ultraprocesados.';
+      case 'anemia':
+        return 'Incluir hierro y vitamina C.';
+      case 'muscle_gain':
+        return 'Asegurar proteína suficiente y entrenamiento de fuerza.';
+      case 'dyslipidemia':
+        return 'Priorizar grasas saludables y limitar frituras.';
+      case 'gastritis':
+        return 'Evitar irritantes como picante, café y alcohol.';
+      case 'colitis':
+        return 'Ajustar fibra según tolerancia.';
+      default:
+        return 'Sin recomendaciones especiales.';
     }
   }
 
@@ -1473,11 +1496,21 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                             margin: const EdgeInsets.only(bottom: 12),
                             child: ExpansionTile(
                               initiallyExpanded: index == 0,
-                              title: Text(
-                                "Objetivo: $goalText",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              title: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Objetivo: $goalText",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    "Patología considerada: ${_getPathologyText(widget.patient['pathology'])}",
+                                    style: const TextStyle(fontSize: 13),
+                                  ),
+                                ],
                               ),
                               subtitle: Text(
                                 "${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal • ${_formatDate(plan['created_at'])}",
@@ -1534,6 +1567,22 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                     ),
                                   );
                                 }).toList(),
+
+                                const SizedBox(height: 12),
+
+                                const Text(
+                                  'Recomendaciones',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+
+                                const SizedBox(height: 6),
+
+                                Text(
+                                  _getPathologyRecommendation(
+                                    widget.patient['pathology'],
+                                  ),
+                                ),
+
                                 const SizedBox(height: 10),
                                 Row(
                                   children: [
