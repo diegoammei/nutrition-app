@@ -8,6 +8,7 @@ import 'services/pdf_service.dart';
 import 'services/menu_service.dart';
 import 'services/appointment_service.dart';
 import 'services/equivalent_plan_service.dart';
+import 'services/food_selection_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1503,6 +1504,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 dailyEquivalents: dailyEquivalents,
                               );
 
+                          final equivalentMenu =
+                              FoodSelectionService.generateFoodMenuFromDistribution(
+                                mealDistribution: mealDistribution,
+                                pathology:
+                                    widget.patient['pathology'] ?? 'none',
+                              );
+
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: ExpansionTile(
@@ -1599,14 +1607,14 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                     ),
                                   );
                                 }).toList(),
-                                
+
                                 const Text(
                                   'Menú sugerido',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 8),
 
-                                ...menu.entries.map((entry) {
+                                ...equivalentMenu.entries.map((entry) {
                                   return Padding(
                                     padding: const EdgeInsets.only(bottom: 8),
                                     child: Column(
