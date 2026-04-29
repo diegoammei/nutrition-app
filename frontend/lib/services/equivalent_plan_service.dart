@@ -11,7 +11,8 @@ class EquivalentPlanService {
         'Leguminosas': 1,
         'AOA': 5,
         'Leche': 1,
-        'Grasas': 3,
+        'Grasas S/P': 2,
+        'Grasas C/P': 1,
       };
     } else if (calories <= 1800) {
       return {
@@ -21,7 +22,8 @@ class EquivalentPlanService {
         'Leguminosas': 1,
         'AOA': 6,
         'Leche': 1,
-        'Grasas': 4,
+        'Grasas S/P': 3,
+        'Grasas C/P': 1,
       };
     } else if (calories <= 2200) {
       return {
@@ -31,7 +33,8 @@ class EquivalentPlanService {
         'Leguminosas': 1,
         'AOA': 7,
         'Leche': 1,
-        'Grasas': 5,
+        'Grasas S/P': 4,
+        'Grasas C/P': 1,
       };
     } else {
       return {
@@ -41,7 +44,8 @@ class EquivalentPlanService {
         'Leguminosas': 2,
         'AOA': 8,
         'Leche': 2,
-        'Grasas': 6,
+        'Grasas S/P': 5,
+        'Grasas C/P': 2,
       };
     }
   }
@@ -54,7 +58,7 @@ class EquivalentPlanService {
         'Frutas': 1,
         'Cereales': 2,
         'AOA': 1,
-        'Grasas': 1,
+        'Grasas S/P': 1,
       },
       'Colación': {
         'Frutas': dailyEquivalents['Frutas']! > 2 ? 1 : 0,
@@ -65,13 +69,13 @@ class EquivalentPlanService {
         'Cereales': 2,
         'Leguminosas': 1,
         'AOA': 3,
-        'Grasas': 1,
+        'Grasas S/P': 1,
       },
       'Cena': {
         'Verduras': 2,
-        'Cereales': dailyEquivalents['Cereales']! >= 6 ? 2 : 1,
+        'Cereales': 1,
         'AOA': 2,
-        'Grasas': 1,
+        'Grasas C/P': 1,
       },
     };
   }

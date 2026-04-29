@@ -21,83 +21,79 @@ class FoodEquivalent {
 class FoodEquivalentsService {
   static List<FoodEquivalent> foods = [
     // FRUTAS
-    FoodEquivalent(
-      name: 'Plátano',
-      group: 'Fruta',
-      portion: '1/2 pieza',
-      carbs: 15,
-      protein: 0,
-      fat: 0,
-      calories: 60,
-    ),
-    FoodEquivalent(
-      name: 'Manzana',
-      group: 'Fruta',
-      portion: '1 pieza chica',
-      carbs: 15,
-      protein: 0,
-      fat: 0,
-      calories: 60,
-    ),
+    FoodEquivalent(name: 'Plátano', group: 'Frutas', portion: '1/2 pieza', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Manzana', group: 'Frutas', portion: '1 pieza', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Pera', group: 'Frutas', portion: '1/2 pieza', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Papaya', group: 'Frutas', portion: '1 taza', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Melón', group: 'Frutas', portion: '1 taza', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Piña', group: 'Frutas', portion: '1 rebanada', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Uvas', group: 'Frutas', portion: '15 piezas', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Naranja', group: 'Frutas', portion: '2 piezas', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Guayaba', group: 'Frutas', portion: '3 piezas', carbs: 15, protein: 0, fat: 0, calories: 60),
+    FoodEquivalent(name: 'Fresa', group: 'Frutas', portion: '1 taza', carbs: 15, protein: 0, fat: 0, calories: 60),
 
     // CEREALES
-    FoodEquivalent(
-      name: 'Tortilla de maíz',
-      group: 'Cereal',
-      portion: '1 pieza',
-      carbs: 15,
-      protein: 2,
-      fat: 1,
-      calories: 70,
-    ),
-    FoodEquivalent(
-      name: 'Arroz',
-      group: 'Cereal',
-      portion: '1/3 taza',
-      carbs: 15,
-      protein: 2,
-      fat: 0,
-      calories: 70,
-    ),
+    FoodEquivalent(name: 'Pan integral', group: 'Cereales', portion: '1 rebanada', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Tortilla de maíz', group: 'Cereales', portion: '1 pieza', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Bolillo o telera', group: 'Cereales', portion: '1/3 pieza', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Cereal sin azúcar', group: 'Cereales', portion: '1/2 taza', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Tortilla de harina', group: 'Cereales', portion: '1/2 pieza', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Arroz cocido', group: 'Cereales', portion: '1/2 taza', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Avena', group: 'Cereales', portion: '3 cucharadas', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Papa cocida', group: 'Cereales', portion: '1/2 pieza', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Tostada horneada', group: 'Cereales', portion: '1 pieza', carbs: 15, protein: 2, fat: 0, calories: 70),
+    FoodEquivalent(name: 'Salmas horneadas', group: 'Cereales', portion: '1 paquete', carbs: 15, protein: 2, fat: 0, calories: 70),
 
-    // PROTEÍNA (AOA)
-    FoodEquivalent(
-      name: 'Pechuga de pollo',
-      group: 'AOA',
-      portion: '30 g',
-      carbs: 0,
-      protein: 7,
-      fat: 1,
-      calories: 40,
-    ),
-    FoodEquivalent(
-      name: 'Huevo',
-      group: 'AOA',
-      portion: '1 pieza',
-      carbs: 0,
-      protein: 6,
-      fat: 5,
-      calories: 70,
-    ),
+    // VERDURAS
+    FoodEquivalent(name: 'Brócoli', group: 'Verduras', portion: '1 taza', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Calabacita', group: 'Verduras', portion: '1 pieza', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Cebolla', group: 'Verduras', portion: '1/2 taza', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Champiñón', group: 'Verduras', portion: '1 taza', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Chayote', group: 'Verduras', portion: '1/2 pieza', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Espinaca', group: 'Verduras', portion: '2 tazas', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Nopal cocido', group: 'Verduras', portion: '1 taza', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Jitomate', group: 'Verduras', portion: '1 pieza', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Lechuga', group: 'Verduras', portion: '3 tazas', carbs: 4, protein: 2, fat: 0, calories: 25),
+    FoodEquivalent(name: 'Pepino', group: 'Verduras', portion: '1 1/2 taza', carbs: 4, protein: 2, fat: 0, calories: 25),
 
-    // GRASAS
-    FoodEquivalent(
-      name: 'Aceite de oliva',
-      group: 'Grasa',
-      portion: '1 cucharadita',
-      carbs: 0,
-      protein: 0,
-      fat: 5,
-      calories: 45,
-    ),
-    FoodEquivalent(
-      name: 'Aguacate',
-      group: 'Grasa',
-      portion: '1/3 pieza',
-      carbs: 5,
-      protein: 1,
-      fat: 10,
-      calories: 100,
-    ),
+    // LEGUMINOSAS
+    FoodEquivalent(name: 'Frijoles cocidos', group: 'Leguminosas', portion: '1/2 taza', carbs: 20, protein: 8, fat: 1, calories: 120),
+    FoodEquivalent(name: 'Frijoles molidos', group: 'Leguminosas', portion: '1/3 taza', carbs: 20, protein: 8, fat: 1, calories: 120),
+    FoodEquivalent(name: 'Lentejas cocidas', group: 'Leguminosas', portion: '1/2 taza', carbs: 20, protein: 9, fat: 1, calories: 120),
+    FoodEquivalent(name: 'Garbanzos cocidos', group: 'Leguminosas', portion: '1/2 taza', carbs: 20, protein: 8, fat: 1, calories: 120),
+    FoodEquivalent(name: 'Soya cocida', group: 'Leguminosas', portion: '1/3 taza', carbs: 20, protein: 8, fat: 1, calories: 120),
+
+    // AOA
+    FoodEquivalent(name: 'Molida de res', group: 'AOA', portion: '30 g', carbs: 0, protein: 7, fat: 5, calories: 75),
+    FoodEquivalent(name: 'Filete de pescado', group: 'AOA', portion: '40 g', carbs: 0, protein: 7, fat: 1, calories: 40),
+    FoodEquivalent(name: 'Queso panela o fresco', group: 'AOA', portion: '40 g', carbs: 0, protein: 7, fat: 3, calories: 55),
+    FoodEquivalent(name: 'Huevo', group: 'AOA', portion: '1 pieza', carbs: 0, protein: 6, fat: 5, calories: 70),
+    FoodEquivalent(name: 'Claras de huevo', group: 'AOA', portion: '2 piezas', carbs: 0, protein: 7, fat: 0, calories: 35),
+    FoodEquivalent(name: 'Filete de pollo', group: 'AOA', portion: '60 g', carbs: 0, protein: 14, fat: 2, calories: 75),
+    FoodEquivalent(name: 'Pechuga de pollo', group: 'AOA', portion: '30 g', carbs: 0, protein: 7, fat: 1, calories: 40),
+    FoodEquivalent(name: 'Atún', group: 'AOA', portion: '35 g', carbs: 0, protein: 7, fat: 1, calories: 40),
+    FoodEquivalent(name: 'Requesón', group: 'AOA', portion: '3 cucharadas', carbs: 0, protein: 7, fat: 3, calories: 55),
+    FoodEquivalent(name: 'Camarón', group: 'AOA', portion: '5 piezas', carbs: 0, protein: 7, fat: 1, calories: 40),
+
+    // LECHE
+    FoodEquivalent(name: 'Leche descremada', group: 'Leche', portion: '1 taza', carbs: 12, protein: 8, fat: 0, calories: 90),
+    FoodEquivalent(name: 'Yogurt natural', group: 'Leche', portion: '1 taza', carbs: 12, protein: 8, fat: 2, calories: 100),
+    FoodEquivalent(name: 'Yogurt griego natural', group: 'Leche', portion: '1 pieza', carbs: 12, protein: 8, fat: 2, calories: 100),
+
+    // GRASAS SIN PROTEÍNA
+    FoodEquivalent(name: 'Aceite de oliva', group: 'Grasas S/P', portion: '1 cucharadita', carbs: 0, protein: 0, fat: 5, calories: 45),
+    FoodEquivalent(name: 'Crema', group: 'Grasas S/P', portion: '1 cucharada', carbs: 0, protein: 0, fat: 5, calories: 45),
+    FoodEquivalent(name: 'Mayonesa', group: 'Grasas S/P', portion: '1 cucharadita', carbs: 0, protein: 0, fat: 5, calories: 45),
+    FoodEquivalent(name: 'Mantequilla', group: 'Grasas S/P', portion: '1 1/2 cucharaditas', carbs: 0, protein: 0, fat: 5, calories: 45),
+    FoodEquivalent(name: 'Queso crema', group: 'Grasas S/P', portion: '1 cucharada', carbs: 0, protein: 0, fat: 5, calories: 45),
+    FoodEquivalent(name: 'Aguacate', group: 'Grasas S/P', portion: '1/3 pieza', carbs: 0, protein: 0, fat: 5, calories: 45),
+
+    // GRASAS CON PROTEÍNA
+    FoodEquivalent(name: 'Nuez', group: 'Grasas C/P', portion: '3 piezas', carbs: 3, protein: 3, fat: 5, calories: 70),
+    FoodEquivalent(name: 'Almendra', group: 'Grasas C/P', portion: '10 piezas', carbs: 3, protein: 3, fat: 5, calories: 70),
+    FoodEquivalent(name: 'Cacahuate natural', group: 'Grasas C/P', portion: '14 piezas', carbs: 3, protein: 3, fat: 5, calories: 70),
+    FoodEquivalent(name: 'Pistaches', group: 'Grasas C/P', portion: '18 piezas', carbs: 3, protein: 3, fat: 5, calories: 70),
+    FoodEquivalent(name: 'Nuez de la india', group: 'Grasas C/P', portion: '7 piezas', carbs: 3, protein: 3, fat: 5, calories: 70),
+    FoodEquivalent(name: 'Aceitunas', group: 'Grasas C/P', portion: '6 piezas', carbs: 3, protein: 3, fat: 5, calories: 70),
   ];
 }
