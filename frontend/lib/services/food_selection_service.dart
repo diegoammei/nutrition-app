@@ -1,4 +1,5 @@
 import 'food_equivalents_service.dart';
+import 'dart:math';
 
 class FoodSelectionService {
   static List<String> selectFoodsForGroup({
@@ -8,18 +9,22 @@ class FoodSelectionService {
   }) {
     if (equivalents <= 0) return [];
 
-    final foods = FoodEquivalentsService.foods
-        .where((food) => food.group == group)
-        .toList();
+    final random = Random();
+
+    final foods =
+        FoodEquivalentsService.foods
+            .where((food) => food.group == group)
+            .toList()
+          ..shuffle(random);
 
     if (foods.isEmpty) {
       return ['$equivalents equivalente(s) de $group'];
     }
 
-    return List.generate(equivalents, (index) {
-      final food = foods[index % foods.length];
-      return '${food.portion} de ${food.name}';
-    });
+    return foods
+        .take(equivalents)
+        .map((food) => '${food.portion} de ${food.name}')
+        .toList();
   }
 
   static Map<String, List<String>> generateFoodMenuFromDistribution({
