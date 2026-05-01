@@ -10,6 +10,7 @@ import 'services/appointment_service.dart';
 import 'services/equivalent_plan_service.dart';
 import 'services/food_selection_service.dart';
 import 'services/recommendation_service.dart';
+import 'services/meal_builder_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1512,6 +1513,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                     widget.patient['pathology'] ?? 'none',
                               );
 
+                          final readableMeals =
+                              MealBuilderService.buildReadableMeals(
+                                equivalentMenu,
+                              );
+
                           final recommendation =
                               RecommendationService.generateRecommendation(
                                 pathology:
@@ -1621,6 +1627,21 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
                                 const SizedBox(height: 8),
+
+                                const Text(
+                                  'Platillos sugeridos',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+
+                                ...readableMeals.entries.map((entry) {
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 8),
+                                    child: Text('${entry.key}: ${entry.value}'),
+                                  );
+                                }).toList(),
+
+                                const SizedBox(height: 12),
 
                                 ...equivalentMenu.entries.map((entry) {
                                   return Padding(
