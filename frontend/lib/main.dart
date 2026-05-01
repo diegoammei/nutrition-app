@@ -1492,7 +1492,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                               : (plan['goal'] ?? 'Sin objetivo');
                           final calories =
                               (plan['total_calories'] as num?)?.toDouble() ?? 0;
-                          final menu = MenuService.generateMenu(calories);
 
                           final dailyEquivalents =
                               EquivalentPlanService.calculateDailyEquivalents(
@@ -1623,12 +1622,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 }).toList(),
 
                                 const Text(
-                                  'Menú sugerido',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 8),
-
-                                const Text(
                                   'Platillos sugeridos',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
@@ -1642,6 +1635,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 }).toList(),
 
                                 const SizedBox(height: 12),
+
+                                const Text(
+                                  'Menú sugerido',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
 
                                 ...equivalentMenu.entries.map((entry) {
                                   return Padding(
@@ -1731,6 +1730,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                           carbs: carbs,
                                           fats: fats,
                                           menu: equivalentMenu,
+                                          readableMeals: readableMeals,
+                                          recommendation: recommendation,
                                           imc: imc,
                                           gender:
                                               widget.patient['gender'] == 'male'
