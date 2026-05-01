@@ -10,10 +10,13 @@ class FoodSelectionService {
     if (equivalents <= 0) return [];
 
     final random = Random();
-
     final foods =
         FoodEquivalentsService.foods
-            .where((food) => food.group == group)
+            .where(
+              (food) =>
+                  food.group == group &&
+                  !food.notRecommendedFor.contains(pathology),
+            )
             .toList()
           ..shuffle(random);
 
