@@ -19,7 +19,8 @@ class FoodEquivalent {
   final double fat;
   final double calories;
 
-  final List<String> notRecommendedFor; // 👈 AQUÍ
+  final List<String> notRecommendedFor;
+  final List<String> recommendedFor;
 
   FoodEquivalent({
     required this.name,
@@ -29,7 +30,8 @@ class FoodEquivalent {
     required this.protein,
     required this.fat,
     required this.calories,
-    this.notRecommendedFor = const [], // 👈 AQUÍ
+    this.notRecommendedFor = const [],
+    this.recommendedFor = const [],
   });
 }
 

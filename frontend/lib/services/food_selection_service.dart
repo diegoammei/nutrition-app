@@ -10,15 +10,28 @@ class FoodSelectionService {
     if (equivalents <= 0) return [];
 
     final random = Random();
-    final foods =
-        FoodEquivalentsService.foods
-            .where(
-              (food) =>
-                  food.group == group &&
-                  !food.notRecommendedFor.contains(pathology),
-            )
+    final allFoods = FoodEquivalentsService.foods
+        .where(
+          (food) =>
+              food.group == group &&
+              !food.notRecommendedFor.contains(pathology),
+        )
+        .toList();
+
+    final recommendedFoods =
+        allFoods
+            .where((food) => food.recommendedFor.contains(pathology))
             .toList()
           ..shuffle(random);
+
+    final otherFoods =
+        allFoods
+            .where((food) => !food.recommendedFor.contains(pathology))
+            .toList()
+          ..shuffle(random);
+
+    // Mezclar dando prioridad a recomendados
+    final foods = [...recommendedFoods, ...otherFoods];
 
     if (foods.isEmpty) {
       return ['$equivalents equivalente(s) de $group'];

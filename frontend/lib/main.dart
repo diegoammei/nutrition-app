@@ -9,6 +9,7 @@ import 'services/menu_service.dart';
 import 'services/appointment_service.dart';
 import 'services/equivalent_plan_service.dart';
 import 'services/food_selection_service.dart';
+import 'services/recommendation_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1511,6 +1512,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                     widget.patient['pathology'] ?? 'none',
                               );
 
+                          final recommendation =
+                              RecommendationService.generateRecommendation(
+                                pathology:
+                                    widget.patient['pathology'] ?? 'none',
+                                menu: equivalentMenu,
+                              );
+
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: ExpansionTile(
@@ -1644,11 +1652,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                                 const SizedBox(height: 6),
 
-                                Text(
-                                  _getPathologyRecommendation(
-                                    widget.patient['pathology'],
-                                  ),
-                                ),
+                                Text(recommendation),
 
                                 const SizedBox(height: 10),
                                 Row(
