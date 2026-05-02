@@ -15,7 +15,7 @@ class NutritionPlanService {
     }
   }
 
-  static Future<void> createNutritionPlan({
+  static Future<Map<String, dynamic>> createNutritionPlan({
     required int patientId,
     required double weight,
     required double height,
@@ -41,6 +41,8 @@ class NutritionPlanService {
     if (response.statusCode != 201) {
       throw Exception('Error al crear plan nutricional');
     }
+
+      return jsonDecode(response.body);
   }
 
   static Future<void> deleteNutritionPlan(int planId) async {

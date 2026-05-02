@@ -11,6 +11,7 @@ import 'services/equivalent_plan_service.dart';
 import 'services/food_selection_service.dart';
 import 'services/recommendation_service.dart';
 import 'services/meal_builder_service.dart';
+import 'services/menu_item_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -835,14 +836,40 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       final age = int.tryParse(ageController.text)!;
                       final activityValue = activity;
 
-                      await NutritionPlanService.createNutritionPlan(
-                        patientId: widget.patient['id'],
-                        weight: weight,
-                        height: height,
-                        age: age,
-                        gender: gender,
-                        activityFactor: activityValue,
-                        goal: goal,
+                      final plan =
+                          await NutritionPlanService.createNutritionPlan(
+                            patientId: widget.patient['id'],
+                            weight: weight,
+                            height: height,
+                            age: age,
+                            gender: gender,
+                            activityFactor: activityValue,
+                            goal: goal,
+                          );
+
+                      final calories =
+                          (plan['total_calories'] as num?)?.toDouble() ?? 0;
+
+                      final dailyEquivalents =
+                          EquivalentPlanService.calculateDailyEquivalents(
+                            calories: calories,
+                            pathology: widget.patient['pathology'] ?? 'none',
+                          );
+
+                      final mealDistribution =
+                          EquivalentPlanService.distributeByMeal(
+                            dailyEquivalents: dailyEquivalents,
+                          );
+
+                      final equivalentMenu =
+                          FoodSelectionService.generateFoodMenuFromDistribution(
+                            mealDistribution: mealDistribution,
+                            pathology: widget.patient['pathology'] ?? 'none',
+                          );
+
+                      await MenuItemService.saveMenu(
+                        nutritionPlanId: plan['id'],
+                        menu: equivalentMenu,
                       );
 
                       if (!mounted) return;
