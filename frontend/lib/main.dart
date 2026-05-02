@@ -1246,6 +1246,169 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
+  Future<void> _openEditMenu(Map<String, dynamic> plan) async {
+    final items = await MenuItemService.getMenuItemsByPlan(plan['id']);
+
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+
+    for (var item in items) {
+      final meal = item['meal_time'];
+
+      if (!grouped.containsKey(meal)) {
+        grouped[meal] = [];
+      }
+
+      grouped[meal]!.add(item);
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: const Text('Editar menú'),
+              content: SizedBox(
+                width: 400,
+                height: 500,
+                child: ListView(
+                  children: grouped.entries.map((entry) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          entry.key,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        ...entry.value.map((item) {
+                          return Row(
+                            children: [
+                              Expanded(child: Text(item['item_text'])),
+
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () async {
+                                  final controller = TextEditingController(
+                                    text: item['item_text'],
+                                  );
+
+                                  final result = await showDialog<String>(
+                                    context: context,
+                                    builder: (_) => AlertDialog(
+                                      title: const Text('Editar alimento'),
+                                      content: TextField(
+                                        controller: controller,
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(
+                                            context,
+                                            controller.text,
+                                          ),
+                                          child: const Text('Guardar'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (result != null) {
+                                    await MenuItemService.updateMenuItem(
+                                      id: item['id'],
+                                      nutritionPlanId: plan['id'],
+                                      mealTime: item['meal_time'],
+                                      itemText: result,
+                                      order: item['order'],
+                                    );
+
+                                    item['item_text'] = result;
+                                    setModalState(() {});
+                                  }
+                                },
+                              ),
+
+                              IconButton(
+                                icon: const Icon(Icons.delete),
+                                onPressed: () async {
+                                  await MenuItemService.deleteMenuItem(
+                                    item['id'],
+                                  );
+                                  entry.value.remove(item);
+                                  setModalState(() {});
+                                },
+                              ),
+                            ],
+                          );
+                        }).toList(),
+
+                        TextButton(
+                          onPressed: () async {
+                            final controller = TextEditingController();
+
+                            final result = await showDialog<String>(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text('Nuevo alimento'),
+                                content: TextField(controller: controller),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('Cancelar'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(context, controller.text),
+                                    child: const Text('Agregar'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (result != null && result.isNotEmpty) {
+                              await MenuItemService.createMenuItem(
+                                nutritionPlanId: plan['id'],
+                                mealTime: entry.key,
+                                itemText: result,
+                                order: entry.value.length,
+                              );
+
+                              entry.value.add({
+                                'item_text': result,
+                                'meal_time': entry.key,
+                                'order': entry.value.length,
+                              });
+
+                              setModalState(() {});
+                            }
+                          },
+                          child: const Text('+ Agregar alimento'),
+                        ),
+
+                        const Divider(),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cerrar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _confirmDeletePatient() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -1666,6 +1829,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 const Text(
                                   'Menú sugerido',
                                   style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+
+                                ElevatedButton(
+                                  onPressed: () => _openEditMenu(
+                                    Map<String, dynamic>.from(plan),
+                                  ),
+                                  child: const Text('Editar menú'),
                                 ),
                                 const SizedBox(height: 8),
 
