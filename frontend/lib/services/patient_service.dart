@@ -21,7 +21,7 @@ class PatientService {
     required String gender,
     required String phone,
     required String email,
-    required String pathology,
+    required List<int> pathologies,
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
@@ -33,7 +33,7 @@ class PatientService {
         'gender': gender,
         'phone': phone,
         'email': email,
-        'pathology': pathology,
+        'pathology': pathologies,
       }),
     );
 
@@ -50,8 +50,7 @@ class PatientService {
     required String gender,
     required String phone,
     required String email,
-    required String pathology,
-
+    required List<int> pathologies,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$id/'),
@@ -62,8 +61,7 @@ class PatientService {
         'gender': gender,
         'phone': phone,
         'email': email,
-        'pathology': pathology,
-
+        'pathology': pathologies,
       }),
     );
 

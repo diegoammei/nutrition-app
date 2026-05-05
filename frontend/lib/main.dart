@@ -12,6 +12,7 @@ import 'services/food_selection_service.dart';
 import 'services/recommendation_service.dart';
 import 'services/meal_builder_service.dart';
 import 'services/menu_item_service.dart';
+import 'services/pathology_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -60,7 +61,8 @@ class _PatientListScreenState extends State<PatientListScreen> {
     final formKey = GlobalKey<FormState>();
 
     String gender = 'female';
-    String pathology = 'none';
+    List<int> selectedPathologies = [];
+    final pathologies = await PathologyService.getPathologies();
 
     await showDialog(
       context: context,
@@ -145,47 +147,32 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     decoration: const InputDecoration(labelText: 'Género'),
                   ),
                   const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
-                  DropdownButtonFormField<String>(
-                    initialValue: pathology,
-                    items: const [
-                      DropdownMenuItem(value: 'none', child: Text('Ninguna')),
-                      DropdownMenuItem(
-                        value: 'diabetes',
-                        child: Text('Diabetes'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'hypertension',
-                        child: Text('Hipertensión'),
-                      ),
-                      DropdownMenuItem(value: 'cancer', child: Text('Cáncer')),
-                      DropdownMenuItem(
-                        value: 'malnutrition',
-                        child: Text('Desnutrición'),
-                      ),
-                      DropdownMenuItem(value: 'anemia', child: Text('Anemia')),
-                      DropdownMenuItem(
-                        value: 'muscle_gain',
-                        child: Text('Aumento masa muscular'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'dyslipidemia',
-                        child: Text('Dislipidemia'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'gastritis',
-                        child: Text('Gastritis'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'colitis',
-                        child: Text('Colitis'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      pathology = value!;
-                    },
-                    decoration: const InputDecoration(labelText: 'Patología'),
+                  const Text(
+                    'Patologías',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
+
+                  ...pathologies.map((p) {
+                    return StatefulBuilder(
+                      builder: (context, setCheckboxState) {
+                        return CheckboxListTile(
+                          title: Text(p['name']),
+                          value: selectedPathologies.contains(p['id']),
+                          onChanged: (value) {
+                            setCheckboxState(() {
+                              if (value == true) {
+                                selectedPathologies.add(p['id']);
+                              } else {
+                                selectedPathologies.remove(p['id']);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    );
+                  }).toList(),
                   TextFormField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
@@ -239,7 +226,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     gender: gender,
                     phone: phoneController.text,
                     email: emailController.text,
-                    pathology: pathology,
+                    pathologies: selectedPathologies,
                   );
 
                   if (!mounted) return;
@@ -1031,7 +1018,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         ? 'female'
         : (widget.patient['gender'] ?? 'female');
 
-    String pathology = widget.patient['pathology'] ?? 'none';
+    final pathologies = await PathologyService.getPathologies();
+
+    List<int> selectedPathologies =
+        (widget.patient['pathologies'] as List<dynamic>?)
+            ?.map((item) => item as int)
+            .toList() ??
+        [];
 
     await showDialog(
       context: context,
@@ -1117,46 +1110,32 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                   const SizedBox(height: 12),
 
-                  DropdownButtonFormField<String>(
-                    initialValue: pathology,
-                    items: const [
-                      DropdownMenuItem(value: 'none', child: Text('Ninguna')),
-                      DropdownMenuItem(
-                        value: 'diabetes',
-                        child: Text('Diabetes'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'hypertension',
-                        child: Text('Hipertensión'),
-                      ),
-                      DropdownMenuItem(value: 'cancer', child: Text('Cáncer')),
-                      DropdownMenuItem(
-                        value: 'malnutrition',
-                        child: Text('Desnutrición'),
-                      ),
-                      DropdownMenuItem(value: 'anemia', child: Text('Anemia')),
-                      DropdownMenuItem(
-                        value: 'muscle_gain',
-                        child: Text('Aumento masa muscular'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'dyslipidemia',
-                        child: Text('Dislipidemia'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'gastritis',
-                        child: Text('Gastritis'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'colitis',
-                        child: Text('Colitis'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      pathology = value!;
-                    },
-                    decoration: const InputDecoration(labelText: 'Patología'),
+                  const SizedBox(height: 12),
+
+                  const Text(
+                    'Patologías',
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
+
+                  ...pathologies.map((p) {
+                    return StatefulBuilder(
+                      builder: (context, setCheckboxState) {
+                        return CheckboxListTile(
+                          title: Text(p['name']),
+                          value: selectedPathologies.contains(p['id']),
+                          onChanged: (value) {
+                            setCheckboxState(() {
+                              if (value == true) {
+                                selectedPathologies.add(p['id']);
+                              } else {
+                                selectedPathologies.remove(p['id']);
+                              }
+                            });
+                          },
+                        );
+                      },
+                    );
+                  }).toList(),
                   TextFormField(
                     controller: phoneController,
                     maxLines: 1,
@@ -1210,7 +1189,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     gender: gender,
                     phone: phoneController.text,
                     email: emailController.text,
-                    pathology: pathology,
+                    pathologies: selectedPathologies,
                   );
 
                   if (!mounted) return;
@@ -1229,7 +1208,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     widget.patient['phone'] = phoneController.text;
                     widget.patient['email'] = emailController.text;
                     widget.patient['gender'] = gender;
-                    widget.patient['pathology'] = pathology;
+                    widget.patient['pathology'] = selectedPathologies;
                   });
                 } catch (e) {
                   if (!mounted) return;
