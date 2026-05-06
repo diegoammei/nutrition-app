@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'services/patient_service.dart';
 import 'services/anthropometry_service.dart';
 import 'services/nutrition_plan_service.dart';
@@ -176,6 +177,10 @@ class _PatientListScreenState extends State<PatientListScreen> {
                   TextFormField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                     decoration: const InputDecoration(labelText: 'Teléfono'),
                     maxLines: 1,
                     textInputAction: TextInputAction.next,
@@ -184,7 +189,7 @@ class _PatientListScreenState extends State<PatientListScreen> {
                         return 'Teléfono obligatorio';
                       }
                       if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-                        return 'Debe tener 10 dígitos';
+                        return 'Debe tener exactamente 10 dígitos';
                       }
                       return null;
                     },
@@ -837,10 +842,17 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       final calories =
                           (plan['total_calories'] as num?)?.toDouble() ?? 0;
 
+                      final pathologyCodes =
+                          (widget.patient['pathologies_detail']
+                                      as List<dynamic>? ??
+                                  [])
+                              .map((p) => p['code'].toString())
+                              .toList();
+
                       final dailyEquivalents =
                           EquivalentPlanService.calculateDailyEquivalents(
                             calories: calories,
-                            pathology: widget.patient['pathology'] ?? 'none',
+                            pathologies: pathologyCodes,
                           );
 
                       final mealDistribution =
@@ -851,7 +863,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       final equivalentMenu =
                           FoodSelectionService.generateFoodMenuFromDistribution(
                             mealDistribution: mealDistribution,
-                            pathology: widget.patient['pathology'] ?? 'none',
+                            pathologies: pathologyCodes,
                           );
 
                       await MenuItemService.saveMenu(
@@ -1138,16 +1150,20 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   }).toList(),
                   TextFormField(
                     controller: phoneController,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
+                    decoration: const InputDecoration(labelText: 'Teléfono'),
                     maxLines: 1,
                     textInputAction: TextInputAction.next,
-                    decoration: const InputDecoration(labelText: 'Teléfono'),
-                    keyboardType: TextInputType.phone,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Teléfono obligatorio';
                       }
                       if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-                        return 'Debe tener 10 dígitos';
+                        return 'Debe tener exactamente 10 dígitos';
                       }
                       return null;
                     },
@@ -1208,7 +1224,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     widget.patient['phone'] = phoneController.text;
                     widget.patient['email'] = emailController.text;
                     widget.patient['gender'] = gender;
-                    widget.patient['pathology'] = selectedPathologies;
+                    widget.patient['pathologies'] = selectedPathologies;
                   });
                 } catch (e) {
                   if (!mounted) return;
@@ -1662,11 +1678,17 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           final calories =
                               (plan['total_calories'] as num?)?.toDouble() ?? 0;
 
+                          final pathologyCodes =
+                              (widget.patient['pathologies_detail']
+                                          as List<dynamic>? ??
+                                      [])
+                                  .map((p) => p['code'].toString())
+                                  .toList();
+
                           final dailyEquivalents =
                               EquivalentPlanService.calculateDailyEquivalents(
                                 calories: calories,
-                                pathology:
-                                    widget.patient['pathology'] ?? 'none',
+                                pathologies: pathologyCodes,
                               );
 
                           final mealDistribution =
@@ -1674,22 +1696,29 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 dailyEquivalents: dailyEquivalents,
                               );
 
-                          final equivalentMenu =
-                              FoodSelectionService.generateFoodMenuFromDistribution(
-                                mealDistribution: mealDistribution,
-                                pathology:
-                                    widget.patient['pathology'] ?? 'none',
-                              );
+                          final menus = List.generate(3, (_) {
+                            return FoodSelectionService.generateFoodMenuFromDistribution(
+                              mealDistribution: mealDistribution,
+                              pathologies: pathologyCodes,
+                            );
+                          });
+
+                          // Por ahora usamos la opción 1 para PDF, edición y recomendaciones.
+                          // Las 3 opciones se muestran más abajo en pantalla.
+                          final equivalentMenu = menus.first;
 
                           final readableMeals =
                               MealBuilderService.buildReadableMeals(
                                 equivalentMenu,
                               );
 
+                          final primaryPathology = pathologyCodes.isNotEmpty
+                              ? pathologyCodes.first
+                              : 'none';
+
                           final recommendation =
                               RecommendationService.generateRecommendation(
-                                pathology:
-                                    widget.patient['pathology'] ?? 'none',
+                                pathology: primaryPathology,
                                 menu: equivalentMenu,
                               );
 
@@ -1796,10 +1825,41 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 ),
                                 const SizedBox(height: 8),
 
-                                ...readableMeals.entries.map((entry) {
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: Text('${entry.key}: ${entry.value}'),
+                                ...menus.asMap().entries.map((menuEntry) {
+                                  final index = menuEntry.key;
+                                  final menu = menuEntry.value;
+
+                                  final readableMeals =
+                                      MealBuilderService.buildReadableMeals(
+                                        menu,
+                                      );
+
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 12),
+
+                                      Text(
+                                        'Menú opción ${index + 1}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 6),
+
+                                      ...readableMeals.entries.map((entry) {
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          child: Text(
+                                            '${entry.key}: ${entry.value}',
+                                          ),
+                                        );
+                                      }).toList(),
+                                    ],
                                   );
                                 }).toList(),
 

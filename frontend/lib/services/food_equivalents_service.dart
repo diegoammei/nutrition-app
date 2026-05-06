@@ -9,6 +9,74 @@
 // cancer: individualizar según tolerancia
 // malnutrition: aumentar calorías
 // muscle_gain: aumentar proteína y energía
+// obesity: priorizar alimentos con mayor volumen y menor densidad energética
+// overweight: priorizar alimentos con mayor volumen y menor densidad energética
+// renal: individualizar según etapa, laboratorios y restricción médica
+
+class FoodRecommendationRules {
+  static List<String> recommendedFor(String name, String group) {
+    final food = name.toLowerCase();
+
+    if (group == 'Verduras') {
+      return [
+        'diabetes',
+        'hypertension',
+        'dyslipidemia',
+        'obesity',
+        'overweight',
+      ];
+    }
+
+    if (food.contains('avena') || food.contains('pan integral')) {
+      return ['diabetes', 'dyslipidemia', 'obesity', 'overweight'];
+    }
+
+    if (food.contains('manzana') ||
+        food.contains('pera') ||
+        food.contains('papaya') ||
+        food.contains('melón') ||
+        food.contains('fresa') ||
+        food.contains('guayaba')) {
+      return ['diabetes', 'obesity', 'overweight', 'anemia'];
+    }
+
+    if (food.contains('frijol') ||
+        food.contains('lenteja') ||
+        food.contains('garbanzo') ||
+        food.contains('soya')) {
+      return ['diabetes', 'dyslipidemia', 'anemia'];
+    }
+
+    if (food.contains('pescado') ||
+        food.contains('atún') ||
+        food.contains('camarón')) {
+      return ['dyslipidemia', 'hypertension', 'obesity', 'overweight'];
+    }
+
+    if (food.contains('pollo') ||
+        food.contains('claras') ||
+        food.contains('huevo')) {
+      return ['muscle_gain', 'obesity', 'overweight', 'anemia'];
+    }
+
+    if (food.contains('leche descremada') ||
+        food.contains('yogurt natural') ||
+        food.contains('yogurt griego')) {
+      return ['muscle_gain', 'malnutrition'];
+    }
+
+    if (food.contains('aceite de oliva') ||
+        food.contains('aguacate') ||
+        food.contains('nuez') ||
+        food.contains('almendra') ||
+        food.contains('cacahuate') ||
+        food.contains('pistache')) {
+      return ['dyslipidemia', 'malnutrition'];
+    }
+
+    return [];
+  }
+}
 
 class FoodEquivalent {
   final String name;
@@ -31,12 +99,14 @@ class FoodEquivalent {
     required this.fat,
     required this.calories,
     this.notRecommendedFor = const [],
-    this.recommendedFor = const [],
-  });
+    List<String>? recommendedFor,
+  }) : recommendedFor =
+           recommendedFor ??
+           FoodRecommendationRules.recommendedFor(name, group);
 }
 
 class FoodEquivalentsService {
-  static List<FoodEquivalent> foods = [
+  static final List<FoodEquivalent> foods = [
     // FRUTAS
     FoodEquivalent(
       name: 'Plátano',
@@ -181,6 +251,25 @@ class FoodEquivalentsService {
     ),
 
     // CEREALES
+    FoodEquivalent(
+      name: 'Pasta cocida',
+      group: 'Cereales',
+      portion: '1/2 taza',
+      carbs: 15,
+      protein: 2,
+      fat: 0,
+      calories: 70,
+    ),
+
+    FoodEquivalent(
+      name: 'Elote',
+      group: 'Cereales',
+      portion: '1/2 pieza',
+      carbs: 15,
+      protein: 2,
+      fat: 0,
+      calories: 70,
+    ),
     FoodEquivalent(
       name: 'Pan integral',
       group: 'Cereales',
@@ -407,6 +496,15 @@ class FoodEquivalentsService {
 
     // LEGUMINOSAS
     FoodEquivalent(
+      name: 'Frijoles negros',
+      group: 'Leguminosas',
+      portion: '1/2 taza',
+      carbs: 20,
+      protein: 8,
+      fat: 1,
+      calories: 120,
+    ),
+    FoodEquivalent(
       name: 'Frijoles cocidos',
       group: 'Leguminosas',
       portion: '1/2 taza',
@@ -576,6 +674,35 @@ class FoodEquivalentsService {
     ),
 
     // LECHE
+    FoodEquivalent(
+      name: 'Leche semidescremada',
+      group: 'Leche',
+      portion: '1 taza',
+      carbs: 12,
+      protein: 8,
+      fat: 3,
+      calories: 110,
+    ),
+
+    FoodEquivalent(
+      name: 'Leche deslactosada',
+      group: 'Leche',
+      portion: '1 taza',
+      carbs: 12,
+      protein: 8,
+      fat: 0,
+      calories: 90,
+    ),
+
+    FoodEquivalent(
+      name: 'Yogurt light',
+      group: 'Leche',
+      portion: '1 taza',
+      carbs: 12,
+      protein: 8,
+      fat: 1,
+      calories: 80,
+    ),
     FoodEquivalent(
       name: 'Leche descremada',
       group: 'Leche',
