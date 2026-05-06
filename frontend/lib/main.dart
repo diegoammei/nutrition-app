@@ -1703,8 +1703,6 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                             );
                           });
 
-                          // Por ahora usamos la opción 1 para PDF, edición y recomendaciones.
-                          // Las 3 opciones se muestran más abajo en pantalla.
                           final equivalentMenu = menus.first;
 
                           final readableMeals =
@@ -1712,13 +1710,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 equivalentMenu,
                               );
 
-                          final primaryPathology = pathologyCodes.isNotEmpty
-                              ? pathologyCodes.first
-                              : 'none';
-
                           final recommendation =
                               RecommendationService.generateRecommendation(
-                                pathology: primaryPathology,
+                                pathology: pathologyCodes.isNotEmpty
+                                    ? pathologyCodes.first
+                                    : 'none',
                                 menu: equivalentMenu,
                               );
 
@@ -1966,6 +1962,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                           carbs: carbs,
                                           fats: fats,
                                           menu: equivalentMenu,
+                                          menus: menus,
                                           readableMeals: readableMeals,
                                           recommendation: recommendation,
                                           imc: imc,
