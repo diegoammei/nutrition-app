@@ -1865,6 +1865,14 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 ),
 
                                 ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {});
+                                  },
+                                  child: const Text('Generar nuevos menús'),
+                                ),
+                                const SizedBox(height: 8),
+
+                                ElevatedButton(
                                   onPressed: () => _openEditMenu(
                                     Map<String, dynamic>.from(plan),
                                   ),
