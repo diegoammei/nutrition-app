@@ -1696,12 +1696,12 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 dailyEquivalents: dailyEquivalents,
                               );
 
-                          final menus = List.generate(3, (_) {
-                            return FoodSelectionService.generateFoodMenuFromDistribution(
-                              mealDistribution: mealDistribution,
-                              pathologies: pathologyCodes,
-                            );
-                          });
+                          final menus =
+                              FoodSelectionService.generateMenuOptions(
+                                mealDistribution: mealDistribution,
+                                pathologies: pathologyCodes,
+                                optionsCount: 3,
+                              );
 
                           final equivalentMenu = menus.first;
 
@@ -1712,9 +1712,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                           final recommendation =
                               RecommendationService.generateRecommendation(
-                                pathology: pathologyCodes.isNotEmpty
-                                    ? pathologyCodes.first
-                                    : 'none',
+                                pathologies: pathologyCodes,
                                 menu: equivalentMenu,
                               );
 

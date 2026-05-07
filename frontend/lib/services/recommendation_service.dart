@@ -1,118 +1,88 @@
 class RecommendationService {
   static String generateRecommendation({
-    required String pathology,
+    required List<String> pathologies,
     required Map<String, List<String>> menu,
   }) {
-    final allFoods = menu.values.expand((items) => items).join(' ').toLowerCase();
+    final recommendations = <String>[];
 
-    switch (pathology) {
-      case 'diabetes':
-        return _diabetesRecommendation(allFoods);
-      case 'hypertension':
-        return _hypertensionRecommendation(allFoods);
-      case 'dyslipidemia':
-        return _dyslipidemiaRecommendation(allFoods);
-      case 'gastritis':
-        return _gastritisRecommendation(allFoods);
-      case 'colitis':
-        return _colitisRecommendation(allFoods);
-      case 'anemia':
-        return _anemiaRecommendation(allFoods);
-      case 'muscle_gain':
-        return _muscleGainRecommendation(allFoods);
-      case 'malnutrition':
-        return _malnutritionRecommendation(allFoods);
-      default:
-        return 'Mantener alimentación equilibrada, variada y adecuada a los objetivos del paciente.';
-    }
-  }
-
-  static String _diabetesRecommendation(String foods) {
-    final includesLegumes = foods.contains('frijol') || foods.contains('lenteja') || foods.contains('garbanzo');
-    final includesOats = foods.contains('avena');
-    final includesVegetables = foods.contains('brócoli') || foods.contains('nopal') || foods.contains('espinaca') || foods.contains('lechuga');
-
-    final positives = <String>[];
-
-    if (includesLegumes) positives.add('leguminosas');
-    if (includesOats) positives.add('avena');
-    if (includesVegetables) positives.add('verduras');
-
-    if (positives.isEmpty) {
-      return 'Distribuir los carbohidratos durante el día, priorizar cereales integrales, verduras y evitar bebidas azucaradas.';
+    if (pathologies.isEmpty) {
+      recommendations.add(
+        'Mantener una alimentación equilibrada, respetar horarios de comida y consumir suficiente agua durante el día.',
+      );
     }
 
-    return 'Este plan incluye ${positives.join(', ')}, que ayudan a mejorar la calidad de carbohidratos. Evitar bebidas azucaradas y azúcares refinados.';
-  }
-
-  static String _hypertensionRecommendation(String foods) {
-    final includesFreshProtein = foods.contains('pollo') || foods.contains('pescado') || foods.contains('atún');
-    final includesVegetables = foods.contains('pepino') || foods.contains('lechuga') || foods.contains('nopal') || foods.contains('brócoli');
-
-    if (includesFreshProtein || includesVegetables) {
-      return 'Este plan prioriza alimentos frescos como proteína magra y verduras. Evitar embutidos, consomé en polvo y productos altos en sodio.';
+    if (pathologies.contains('diabetes')) {
+      recommendations.add(
+        'Diabetes: priorizar cereales integrales, verduras y frutas con moderación. Evitar bebidas azucaradas, postres, jugos y harinas refinadas.',
+      );
     }
 
-    return 'Reducir sodio, evitar embutidos y preferir alimentos frescos preparados en casa.';
-  }
-
-  static String _dyslipidemiaRecommendation(String foods) {
-    final includesHealthyFats = foods.contains('aguacate') || foods.contains('nuez') || foods.contains('almendra') || foods.contains('aceite de oliva');
-    final includesFish = foods.contains('pescado') || foods.contains('atún');
-
-    if (includesHealthyFats || includesFish) {
-      return 'Este plan incluye grasas saludables y/o proteína magra. Limitar frituras, crema, mantequilla y embutidos.';
+    if (pathologies.contains('hypertension')) {
+      recommendations.add(
+        'Hipertensión: reducir sal, embutidos, enlatados, sopas instantáneas, comida rápida y productos ultraprocesados.',
+      );
     }
 
-    return 'Priorizar fibra, verduras, grasas saludables y limitar grasas saturadas.';
-  }
-
-  static String _gastritisRecommendation(String foods) {
-    final includesSoftFoods = foods.contains('avena') || foods.contains('arroz') || foods.contains('papa') || foods.contains('pollo');
-
-    if (includesSoftFoods) {
-      return 'Este plan incluye alimentos suaves y de fácil tolerancia. Evitar picante, café, cítricos, alcohol y comidas muy grasosas.';
+    if (pathologies.contains('dyslipidemia')) {
+      recommendations.add(
+        'Dislipidemia: preferir grasas saludables como aguacate, aceite de oliva, nueces y pescado. Evitar frituras, mantequilla, crema y carnes grasosas.',
+      );
     }
 
-    return 'Preferir preparaciones suaves, evitar irritantes y ajustar alimentos según tolerancia.';
-  }
-
-  static String _colitisRecommendation(String foods) {
-    return 'Ajustar fibra según tolerancia individual. Evitar irritantes, exceso de grasa y alimentos que el paciente identifique como detonantes.';
-  }
-
-  static String _anemiaRecommendation(String foods) {
-    final includesIron = foods.contains('lenteja') || foods.contains('frijol') || foods.contains('espinaca') || foods.contains('hígado');
-    final includesVitaminC = foods.contains('guayaba') || foods.contains('naranja') || foods.contains('fresa');
-
-    if (includesIron && includesVitaminC) {
-      return 'Este plan combina alimentos fuente de hierro con vitamina C, lo cual puede favorecer la absorción del hierro.';
+    if (pathologies.contains('gastritis')) {
+      recommendations.add(
+        'Gastritis: evitar picante, café, alcohol, cítricos, irritantes y comidas muy grasosas.',
+      );
     }
 
-    if (includesIron) {
-      return 'Este plan incluye alimentos fuente de hierro. Se recomienda acompañarlos con una fuente de vitamina C.';
+    if (pathologies.contains('colitis')) {
+      recommendations.add(
+        'Colitis: ajustar fibra según tolerancia, evitar irritantes, exceso de grasa, picante y alimentos que produzcan gases.',
+      );
     }
 
-    return 'Priorizar alimentos ricos en hierro y combinarlos con vitamina C.';
-  }
-
-  static String _muscleGainRecommendation(String foods) {
-    final includesProtein = foods.contains('pollo') || foods.contains('huevo') || foods.contains('atún') || foods.contains('pescado') || foods.contains('yogurt');
-
-    if (includesProtein) {
-      return 'Este plan incluye fuentes de proteína útiles para apoyar aumento de masa muscular. Complementar con entrenamiento de fuerza.';
+    if (pathologies.contains('anemia')) {
+      recommendations.add(
+        'Anemia: incluir alimentos ricos en hierro como leguminosas, verduras verdes, carnes magras y combinarlos con vitamina C cuando sea tolerado.',
+      );
     }
 
-    return 'Asegurar proteína suficiente, energía adecuada y entrenamiento de fuerza progresivo.';
-  }
-
-  static String _malnutritionRecommendation(String foods) {
-    final includesEnergyDense = foods.contains('aguacate') || foods.contains('nuez') || foods.contains('almendra') || foods.contains('leche') || foods.contains('yogurt');
-
-    if (includesEnergyDense) {
-      return 'Este plan incluye alimentos con mayor densidad energética y proteica. Favorecer comidas pequeñas y frecuentes.';
+    if (pathologies.contains('obesity')) {
+      recommendations.add(
+        'Obesidad: cuidar porciones, priorizar verduras, proteínas magras y evitar bebidas azucaradas, pan dulce, frituras y exceso de cereales.',
+      );
     }
 
-    return 'Aumentar densidad calórica y proteica con preparaciones tolerables y frecuentes.';
+    if (pathologies.contains('overweight')) {
+      recommendations.add(
+        'Sobrepeso: mantener déficit moderado, aumentar verduras y elegir preparaciones asadas, cocidas o al vapor.',
+      );
+    }
+
+    if (pathologies.contains('renal')) {
+      recommendations.add(
+        'Insuficiencia renal: individualizar proteína, sodio, potasio y fósforo según indicación médica y estudios de laboratorio.',
+      );
+    }
+
+    if (pathologies.contains('cancer')) {
+      recommendations.add(
+        'Cáncer: adaptar la alimentación a tolerancia, apetito, tratamiento y síntomas. Priorizar energía y proteína cuando sea necesario.',
+      );
+    }
+
+    if (pathologies.contains('malnutrition')) {
+      recommendations.add(
+        'Desnutrición: aumentar densidad calórica y proteica con preparaciones pequeñas pero frecuentes.',
+      );
+    }
+
+    if (pathologies.contains('muscle_gain')) {
+      recommendations.add(
+        'Aumento de masa muscular: asegurar suficiente proteína, energía total y acompañar con entrenamiento de fuerza.',
+      );
+    }
+
+    return recommendations.join('\n\n');
   }
 }

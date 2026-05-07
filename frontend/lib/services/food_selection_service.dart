@@ -8,7 +8,8 @@ class FoodSelectionService {
     required String group,
     required int equivalents,
     required List<String> pathologies,
-    Set<String>? usedFoods,
+    Set<String>? usedFoodsInMenu,
+    Set<String>? usedFoodsAcrossMenus,
   }) {
     if (equivalents <= 0) return [];
 
@@ -48,19 +49,42 @@ class FoodSelectionService {
 
     final selectedFoods = <FoodEquivalent>[];
 
+    // 1. Primero intenta alimentos no usados en este menú ni en otros menús
     for (final food in prioritizedFoods) {
       if (selectedFoods.length >= equivalents) break;
 
-      if (usedFoods == null || !usedFoods.contains(food.name)) {
+      final alreadyUsedInMenu =
+          usedFoodsInMenu != null && usedFoodsInMenu.contains(food.name);
+
+      final alreadyUsedAcrossMenus =
+          usedFoodsAcrossMenus != null && usedFoodsAcrossMenus.contains(food.name);
+
+      if (!alreadyUsedInMenu && !alreadyUsedAcrossMenus) {
         selectedFoods.add(food);
-        usedFoods?.add(food.name);
+        usedFoodsInMenu?.add(food.name);
+        usedFoodsAcrossMenus?.add(food.name);
       }
     }
 
+    // 2. Si no alcanza, permite alimentos usados en otros menús, pero no en este
     if (selectedFoods.length < equivalents) {
       for (final food in prioritizedFoods) {
         if (selectedFoods.length >= equivalents) break;
 
+        final alreadyUsedInMenu =
+            usedFoodsInMenu != null && usedFoodsInMenu.contains(food.name);
+
+        if (!alreadyUsedInMenu) {
+          selectedFoods.add(food);
+          usedFoodsInMenu?.add(food.name);
+        }
+      }
+    }
+
+    // 3. Si todavía no alcanza, permite repetir para completar equivalentes
+    if (selectedFoods.length < equivalents) {
+      for (final food in prioritizedFoods) {
+        if (selectedFoods.length >= equivalents) break;
         selectedFoods.add(food);
       }
     }
@@ -73,9 +97,10 @@ class FoodSelectionService {
   static Map<String, List<String>> generateFoodMenuFromDistribution({
     required Map<String, Map<String, int>> mealDistribution,
     required List<String> pathologies,
+    Set<String>? usedFoodsAcrossMenus,
   }) {
     final Map<String, List<String>> menu = {};
-    final usedFoods = <String>{};
+    final usedFoodsInMenu = <String>{};
 
     mealDistribution.forEach((meal, groups) {
       final List<String> mealFoods = [];
@@ -85,7 +110,8 @@ class FoodSelectionService {
           group: group,
           equivalents: equivalents,
           pathologies: pathologies,
-          usedFoods: usedFoods,
+          usedFoodsInMenu: usedFoodsInMenu,
+          usedFoodsAcrossMenus: usedFoodsAcrossMenus,
         );
 
         mealFoods.addAll(foods);
@@ -95,5 +121,21 @@ class FoodSelectionService {
     });
 
     return menu;
+  }
+
+  static List<Map<String, List<String>>> generateMenuOptions({
+    required Map<String, Map<String, int>> mealDistribution,
+    required List<String> pathologies,
+    int optionsCount = 3,
+  }) {
+    final usedFoodsAcrossMenus = <String>{};
+
+    return List.generate(optionsCount, (_) {
+      return generateFoodMenuFromDistribution(
+        mealDistribution: mealDistribution,
+        pathologies: pathologies,
+        usedFoodsAcrossMenus: usedFoodsAcrossMenus,
+      );
+    });
   }
 }
