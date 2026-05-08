@@ -15,6 +15,7 @@ import 'services/meal_builder_service.dart';
 import 'services/menu_item_service.dart';
 import 'services/pathology_service.dart';
 import 'services/nutrition_history_service.dart';
+import 'services/biochemical_test_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1275,6 +1276,26 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       text: existingHistory?['recall_dinner'] ?? '',
     );
 
+    final currentMedicationsController = TextEditingController(
+      text: existingHistory?['current_medications'] ?? '',
+    );
+
+    final supplementsController = TextEditingController(
+      text: existingHistory?['supplements'] ?? '',
+    );
+
+    final foodAllergiesController = TextEditingController(
+      text: existingHistory?['food_allergies'] ?? '',
+    );
+
+    final avoidedFoodsController = TextEditingController(
+      text: existingHistory?['avoided_foods'] ?? '',
+    );
+
+    final avoidedFoodsReasonController = TextEditingController(
+      text: existingHistory?['avoided_foods_reason'] ?? '',
+    );
+
     bool familyDiabetes = existingHistory?['family_diabetes'] ?? false;
     bool familyObesity = existingHistory?['family_obesity'] ?? false;
     bool familyCancer = existingHistory?['family_cancer'] ?? false;
@@ -1381,6 +1402,70 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     const SizedBox(height: 16),
 
                     const Text(
+                      'Medicamentos y suplementos',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: currentMedicationsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Medicamentos actuales',
+                      ),
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: supplementsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Suplementos',
+                      ),
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Alergias y alimentos evitados',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: foodAllergiesController,
+                      decoration: const InputDecoration(
+                        labelText: 'Alergias alimentarias',
+                      ),
+                      maxLines: 2,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: avoidedFoodsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Alimentos que evita',
+                      ),
+                      maxLines: 2,
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: avoidedFoodsReasonController,
+                      decoration: const InputDecoration(
+                        labelText: 'Motivo por el que los evita',
+                      ),
+                      maxLines: 2,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
                       'Recordatorio de 24 horas',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
@@ -1442,6 +1527,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         familyThyroid: familyThyroid,
                         previousConditions: previousConditionsController.text,
                         currentCondition: currentConditionController.text,
+                        currentMedications: currentMedicationsController.text,
+                        supplements: supplementsController.text,
+                        foodAllergies: foodAllergiesController.text,
+                        avoidedFoods: avoidedFoodsController.text,
+                        avoidedFoodsReason: avoidedFoodsReasonController.text,
                         recallBreakfast: recallBreakfastController.text,
                         recallMorningSnack: recallMorningSnackController.text,
                         recallLunch: recallLunchController.text,
@@ -1461,6 +1551,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         familyThyroid: familyThyroid,
                         previousConditions: previousConditionsController.text,
                         currentCondition: currentConditionController.text,
+                        currentMedications: currentMedicationsController.text,
+                        supplements: supplementsController.text,
+                        foodAllergies: foodAllergiesController.text,
+                        avoidedFoods: avoidedFoodsController.text,
+                        avoidedFoodsReason: avoidedFoodsReasonController.text,
                         recallBreakfast: recallBreakfastController.text,
                         recallMorningSnack: recallMorningSnackController.text,
                         recallLunch: recallLunchController.text,
@@ -1479,6 +1574,137 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         content: Text('Historia nutricional guardada'),
                       ),
                     );
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openBiochemicalTestsDialog() async {
+    final tests = await BiochemicalTestService.getTestsByPatient(
+      widget.patient['id'],
+    );
+
+    if (!mounted) return;
+
+    final dateController = TextEditingController();
+    final testNameController = TextEditingController();
+    final resultController = TextEditingController();
+    final notesController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: const Text('Bioquímicos'),
+
+              content: SizedBox(
+                width: 500,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Estudios registrados',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      ...tests.map((test) {
+                        return Card(
+                          child: ListTile(
+                            title: Text(test['test_name'] ?? ''),
+                            subtitle: Text(
+                              'Resultado: ${test['result']}\n'
+                              'Fecha: ${test['date']}',
+                            ),
+                          ),
+                        );
+                      }),
+
+                      const SizedBox(height: 16),
+
+                      const Divider(),
+
+                      const SizedBox(height: 8),
+
+                      const Text(
+                        'Agregar estudio',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      TextField(
+                        controller: dateController,
+                        decoration: const InputDecoration(
+                          labelText: 'Fecha (YYYY-MM-DD)',
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      TextField(
+                        controller: testNameController,
+                        decoration: const InputDecoration(labelText: 'Examen'),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      TextField(
+                        controller: resultController,
+                        decoration: const InputDecoration(
+                          labelText: 'Resultado',
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      TextField(
+                        controller: notesController,
+                        decoration: const InputDecoration(labelText: 'Notas'),
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cerrar'),
+                ),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    await BiochemicalTestService.createTest(
+                      patientId: widget.patient['id'],
+                      date: dateController.text,
+                      testName: testNameController.text,
+                      result: resultController.text,
+                      notes: notesController.text,
+                    );
+
+                    if (!context.mounted) return;
+
+                    Navigator.pop(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Estudio guardado')),
+                    );
+
+                    setState(() {});
                   },
                   child: const Text('Guardar'),
                 ),
@@ -2132,6 +2358,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 ElevatedButton(
                                   onPressed: _openNutritionHistoryDialog,
                                   child: const Text('Historia nutricional'),
+                                ),
+
+                                ElevatedButton(
+                                  onPressed: () {
+                                    _openBiochemicalTestsDialog();
+                                  },
+                                  child: const Text('Bioquímicos'),
                                 ),
 
                                 ...equivalentMenu.entries.map((entry) {

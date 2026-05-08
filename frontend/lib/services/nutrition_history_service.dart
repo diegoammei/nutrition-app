@@ -100,6 +100,11 @@ class NutritionHistoryService {
     String? recallLunch,
     String? recallAfternoonSnack,
     String? recallDinner,
+    String? currentMedications,
+    String? supplements,
+    String? foodAllergies,
+    String? avoidedFoods,
+    String? avoidedFoodsReason,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$id/'),
@@ -119,6 +124,11 @@ class NutritionHistoryService {
         'recall_lunch': recallLunch,
         'recall_afternoon_snack': recallAfternoonSnack,
         'recall_dinner': recallDinner,
+        'current_medications': currentMedications,
+        'supplements': supplements,
+        'food_allergies': foodAllergies,
+        'avoided_foods': avoidedFoods,
+        'avoided_foods_reason': avoidedFoodsReason,
       }),
     );
 
