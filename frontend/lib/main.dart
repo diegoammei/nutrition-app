@@ -14,6 +14,7 @@ import 'services/recommendation_service.dart';
 import 'services/meal_builder_service.dart';
 import 'services/menu_item_service.dart';
 import 'services/pathology_service.dart';
+import 'services/nutrition_history_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1241,6 +1242,254 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
+  Future<void> _openNutritionHistoryDialog() async {
+    final histories = await NutritionHistoryService.getHistoriesByPatient(
+      widget.patient['id'],
+    );
+
+    final existingHistory = histories.isNotEmpty ? histories.first : null;
+
+    final consultationReasonController = TextEditingController(
+      text: existingHistory?['consultation_reason'] ?? '',
+    );
+    final previousConditionsController = TextEditingController(
+      text: existingHistory?['previous_conditions'] ?? '',
+    );
+    final currentConditionController = TextEditingController(
+      text: existingHistory?['current_condition'] ?? '',
+    );
+
+    final recallBreakfastController = TextEditingController(
+      text: existingHistory?['recall_breakfast'] ?? '',
+    );
+    final recallMorningSnackController = TextEditingController(
+      text: existingHistory?['recall_morning_snack'] ?? '',
+    );
+    final recallLunchController = TextEditingController(
+      text: existingHistory?['recall_lunch'] ?? '',
+    );
+    final recallAfternoonSnackController = TextEditingController(
+      text: existingHistory?['recall_afternoon_snack'] ?? '',
+    );
+    final recallDinnerController = TextEditingController(
+      text: existingHistory?['recall_dinner'] ?? '',
+    );
+
+    bool familyDiabetes = existingHistory?['family_diabetes'] ?? false;
+    bool familyObesity = existingHistory?['family_obesity'] ?? false;
+    bool familyCancer = existingHistory?['family_cancer'] ?? false;
+    bool familyHypertension = existingHistory?['family_hypertension'] ?? false;
+    bool familyThyroid = existingHistory?['family_thyroid'] ?? false;
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: Text(
+                existingHistory == null
+                    ? 'Historia nutricional'
+                    : 'Editar historia nutricional',
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: consultationReasonController,
+                      decoration: const InputDecoration(
+                        labelText: 'Motivo de consulta',
+                      ),
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    CheckboxListTile(
+                      value: familyDiabetes,
+                      title: const Text('Diabetes familiar'),
+                      onChanged: (value) {
+                        setModalState(() {
+                          familyDiabetes = value ?? false;
+                        });
+                      },
+                    ),
+
+                    CheckboxListTile(
+                      value: familyObesity,
+                      title: const Text('Obesidad familiar'),
+                      onChanged: (value) {
+                        setModalState(() {
+                          familyObesity = value ?? false;
+                        });
+                      },
+                    ),
+
+                    CheckboxListTile(
+                      value: familyCancer,
+                      title: const Text('Cáncer familiar'),
+                      onChanged: (value) {
+                        setModalState(() {
+                          familyCancer = value ?? false;
+                        });
+                      },
+                    ),
+
+                    CheckboxListTile(
+                      value: familyHypertension,
+                      title: const Text('Hipertensión familiar'),
+                      onChanged: (value) {
+                        setModalState(() {
+                          familyHypertension = value ?? false;
+                        });
+                      },
+                    ),
+
+                    CheckboxListTile(
+                      value: familyThyroid,
+                      title: const Text('Problemas tiroideos familiares'),
+                      onChanged: (value) {
+                        setModalState(() {
+                          familyThyroid = value ?? false;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: previousConditionsController,
+                      decoration: const InputDecoration(
+                        labelText: 'Padecimientos previos',
+                      ),
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    TextField(
+                      controller: currentConditionController,
+                      decoration: const InputDecoration(
+                        labelText: 'Padecimiento actual',
+                      ),
+                      maxLines: 3,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    const Text(
+                      'Recordatorio de 24 horas',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    TextField(
+                      controller: recallBreakfastController,
+                      decoration: const InputDecoration(labelText: 'Desayuno'),
+                      maxLines: 2,
+                    ),
+
+                    TextField(
+                      controller: recallMorningSnackController,
+                      decoration: const InputDecoration(
+                        labelText: 'Colación mañana',
+                      ),
+                      maxLines: 2,
+                    ),
+
+                    TextField(
+                      controller: recallLunchController,
+                      decoration: const InputDecoration(labelText: 'Comida'),
+                      maxLines: 2,
+                    ),
+
+                    TextField(
+                      controller: recallAfternoonSnackController,
+                      decoration: const InputDecoration(
+                        labelText: 'Colación tarde',
+                      ),
+                      maxLines: 2,
+                    ),
+
+                    TextField(
+                      controller: recallDinnerController,
+                      decoration: const InputDecoration(labelText: 'Cena'),
+                      maxLines: 2,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    if (existingHistory == null) {
+                      await NutritionHistoryService.createHistory(
+                        patientId: widget.patient['id'],
+                        consultationReason: consultationReasonController.text,
+                        familyDiabetes: familyDiabetes,
+                        familyObesity: familyObesity,
+                        familyCancer: familyCancer,
+                        familyHypertension: familyHypertension,
+                        familyThyroid: familyThyroid,
+                        previousConditions: previousConditionsController.text,
+                        currentCondition: currentConditionController.text,
+                        recallBreakfast: recallBreakfastController.text,
+                        recallMorningSnack: recallMorningSnackController.text,
+                        recallLunch: recallLunchController.text,
+                        recallAfternoonSnack:
+                            recallAfternoonSnackController.text,
+                        recallDinner: recallDinnerController.text,
+                      );
+                    } else {
+                      await NutritionHistoryService.updateHistory(
+                        id: existingHistory['id'],
+                        patientId: widget.patient['id'],
+                        consultationReason: consultationReasonController.text,
+                        familyDiabetes: familyDiabetes,
+                        familyObesity: familyObesity,
+                        familyCancer: familyCancer,
+                        familyHypertension: familyHypertension,
+                        familyThyroid: familyThyroid,
+                        previousConditions: previousConditionsController.text,
+                        currentCondition: currentConditionController.text,
+                        recallBreakfast: recallBreakfastController.text,
+                        recallMorningSnack: recallMorningSnackController.text,
+                        recallLunch: recallLunchController.text,
+                        recallAfternoonSnack:
+                            recallAfternoonSnackController.text,
+                        recallDinner: recallDinnerController.text,
+                      );
+                    }
+
+                    if (!context.mounted) return;
+
+                    Navigator.pop(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Historia nutricional guardada'),
+                      ),
+                    );
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   Future<void> _openEditMenu(Map<String, dynamic> plan) async {
     final items = await MenuItemService.getMenuItemsByPlan(plan['id']);
 
@@ -1879,6 +2128,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                   child: const Text('Editar menú'),
                                 ),
                                 const SizedBox(height: 8),
+
+                                ElevatedButton(
+                                  onPressed: _openNutritionHistoryDialog,
+                                  child: const Text('Historia nutricional'),
+                                ),
 
                                 ...equivalentMenu.entries.map((entry) {
                                   return Padding(
