@@ -16,6 +16,7 @@ import 'services/menu_item_service.dart';
 import 'services/pathology_service.dart';
 import 'services/nutrition_history_service.dart';
 import 'services/biochemical_test_service.dart';
+import 'services/follow_up_note_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -1716,6 +1717,116 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
+  Future<void> _openFollowUpNotesDialog() async {
+    final notes = await FollowUpNoteService.getNotesByPatient(
+      widget.patient['id'],
+    );
+
+    if (!mounted) return;
+
+    final evolutionController = TextEditingController();
+    final adherenceController = TextEditingController();
+    final symptomsController = TextEditingController();
+    final observationsController = TextEditingController();
+    final planChangesController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Seguimiento clínico'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const Text(
+                    'Notas registradas',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+
+                  ...notes.map((note) {
+                    return Card(
+                      child: ListTile(
+                        title: Text(note['adherence'] ?? 'Seguimiento'),
+                        subtitle: Text(
+                          'Evolución: ${note['evolution'] ?? ''}\n'
+                          'Síntomas: ${note['symptoms'] ?? ''}\n'
+                          'Observaciones: ${note['observations'] ?? ''}',
+                        ),
+                      ),
+                    );
+                  }),
+
+                  const Divider(),
+
+                  TextField(
+                    controller: evolutionController,
+                    decoration: const InputDecoration(labelText: 'Evolución'),
+                    maxLines: 3,
+                  ),
+                  TextField(
+                    controller: adherenceController,
+                    decoration: const InputDecoration(labelText: 'Adherencia'),
+                  ),
+                  TextField(
+                    controller: symptomsController,
+                    decoration: const InputDecoration(labelText: 'Síntomas'),
+                    maxLines: 2,
+                  ),
+                  TextField(
+                    controller: observationsController,
+                    decoration: const InputDecoration(
+                      labelText: 'Observaciones',
+                    ),
+                    maxLines: 3,
+                  ),
+                  TextField(
+                    controller: planChangesController,
+                    decoration: const InputDecoration(
+                      labelText: 'Cambios al plan',
+                    ),
+                    maxLines: 3,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                await FollowUpNoteService.createNote(
+                  patientId: widget.patient['id'],
+                  evolution: evolutionController.text,
+                  adherence: adherenceController.text,
+                  symptoms: symptomsController.text,
+                  observations: observationsController.text,
+                  planChanges: planChangesController.text,
+                );
+
+                if (!context.mounted) return;
+
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Seguimiento guardado')),
+                );
+
+                setState(() {});
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _openEditMenu(Map<String, dynamic> plan) async {
     final items = await MenuItemService.getMenuItemsByPlan(plan['id']);
 
@@ -1972,6 +2083,23 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               );
             }).toList();
 
+            final imcSpots = anthropometries.asMap().entries.map((entry) {
+              final index = entry.key;
+              final item = entry.value;
+
+              final weight = double.tryParse(item['weight'].toString()) ?? 0;
+
+              final height = double.tryParse(item['height'].toString()) ?? 0;
+
+              double imc = 0;
+
+              if (height > 0) {
+                imc = weight / ((height / 100) * (height / 100));
+              }
+
+              return FlSpot(index.toDouble(), imc);
+            }).toList();
+
             final latestAnthro = anthropometries.isNotEmpty
                 ? anthropometries.last
                 : null;
@@ -2122,6 +2250,84 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   else
                     const Text("No hay datos para gráfica"),
                   const SizedBox(height: 24),
+
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    "Evolución de IMC",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  if (imcSpots.isNotEmpty)
+                    SizedBox(
+                      height: 200,
+                      child: LineChart(
+                        LineChartData(
+                          gridData: FlGridData(show: true),
+
+                          titlesData: FlTitlesData(
+                            show: true,
+
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+
+                                getTitlesWidget: (value, meta) {
+                                  final index = value.toInt();
+
+                                  if (index < 0 ||
+                                      index >= anthropometries.length) {
+                                    return const SizedBox.shrink();
+                                  }
+
+                                  final item = anthropometries[index];
+
+                                  final dateText = _formatShortDate(
+                                    item['created_at'],
+                                  );
+
+                                  return Text(
+                                    dateText,
+                                    style: const TextStyle(fontSize: 10),
+                                  );
+                                },
+                              ),
+                            ),
+
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 40,
+                              ),
+                            ),
+
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+
+                          borderData: FlBorderData(show: true),
+
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: imcSpots,
+                              isCurved: true,
+                              dotData: FlDotData(show: true),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    const Text("No hay datos para gráfica"),
+
                   const Text(
                     "Plan nutricional",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -2365,6 +2571,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                     _openBiochemicalTestsDialog();
                                   },
                                   child: const Text('Bioquímicos'),
+                                ),
+
+                                ElevatedButton(
+                                  onPressed: _openFollowUpNotesDialog,
+                                  child: const Text('Seguimiento'),
                                 ),
 
                                 ...equivalentMenu.entries.map((entry) {
