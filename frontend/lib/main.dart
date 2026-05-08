@@ -2751,6 +2751,47 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                       },
                                       child: const Text('Eliminar'),
                                     ),
+
+                                    const SizedBox(width: 10),
+
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        final biochemicalTests =
+                                            await BiochemicalTestService.getTestsByPatient(
+                                              widget.patient['id'],
+                                            );
+
+                                        final followUpNotes =
+                                            await FollowUpNoteService.getNotesByPatient(
+                                              widget.patient['id'],
+                                            );
+
+                                        final histories =
+                                            await NutritionHistoryService.getHistoriesByPatient(
+                                              widget.patient['id'],
+                                            );
+
+                                        final nutritionHistory =
+                                            histories.isNotEmpty
+                                            ? histories.first
+                                            : null;
+
+                                        await PdfService.generateClinicalRecordPdf(
+                                          patient: widget.patient,
+
+                                          anthropometries: anthropometries,
+
+                                          nutritionPlans: nutritionPlans,
+
+                                          biochemicalTests: biochemicalTests,
+
+                                          followUpNotes: followUpNotes,
+
+                                          nutritionHistory: nutritionHistory,
+                                        );
+                                      },
+                                      child: const Text('Expediente PDF'),
+                                    ),
                                   ],
                                 ),
                               ],

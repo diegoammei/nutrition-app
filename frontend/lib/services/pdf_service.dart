@@ -198,12 +198,253 @@ class PdfService {
     await Printing.layoutPdf(onLayout: (format) async => pdf.save());
   }
 
+  static Future<void> generateClinicalRecordPdf({
+    required Map<String, dynamic> patient,
+    required List<dynamic> anthropometries,
+    required List<dynamic> nutritionPlans,
+    required List<dynamic> biochemicalTests,
+    required List<dynamic> followUpNotes,
+    required Map<String, dynamic>? nutritionHistory,
+  }) async {
+    final pdf = pw.Document();
+    final formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+
+    pdf.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(24),
+        build: (context) {
+          return [
+            pw.Center(
+              child: pw.Text(
+                'Expediente Clínico Nutricional',
+                style: pw.TextStyle(
+                  fontSize: 22,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Center(child: pw.Text('Fecha de generación: $formattedDate')),
+            pw.SizedBox(height: 20),
+            pw.Divider(),
+
+            pw.Text(
+              'Datos del paciente',
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+            pw.Text('Nombre: ${patient['name'] ?? ''}'),
+            pw.Text('Edad: ${patient['age'] ?? ''}'),
+            pw.Text('Género: ${patient['gender'] ?? ''}'),
+            pw.Text('Teléfono: ${patient['phone'] ?? ''}'),
+            pw.Text('Email: ${patient['email'] ?? ''}'),
+            pw.Text('Estatura: ${patient['height'] ?? ''} cm'),
+
+            pw.SizedBox(height: 16),
+            pw.Divider(),
+
+            pw.Text(
+              'Historia nutricional',
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+
+            if (nutritionHistory == null)
+              pw.Text('Sin historia nutricional registrada')
+            else ...[
+              pw.Text(
+                'Motivo de consulta: ${nutritionHistory['consultation_reason'] ?? ''}',
+              ),
+              pw.Text(
+                'Padecimientos previos: ${nutritionHistory['previous_conditions'] ?? ''}',
+              ),
+              pw.Text(
+                'Padecimiento actual: ${nutritionHistory['current_condition'] ?? ''}',
+              ),
+              pw.Text(
+                'Medicamentos: ${nutritionHistory['current_medications'] ?? ''}',
+              ),
+              pw.Text('Suplementos: ${nutritionHistory['supplements'] ?? ''}'),
+              pw.Text(
+                'Alergias alimentarias: ${nutritionHistory['food_allergies'] ?? ''}',
+              ),
+              pw.Text(
+                'Alimentos evitados: ${nutritionHistory['avoided_foods'] ?? ''}',
+              ),
+              pw.Text(
+                'Motivo: ${nutritionHistory['avoided_foods_reason'] ?? ''}',
+              ),
+            ],
+
+            pw.SizedBox(height: 16),
+
+            pw.Text(
+              'Recordatorio de 24 horas',
+              style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 6),
+
+            if (nutritionHistory != null) ...[
+              pw.Text(
+                'Desayuno: ${nutritionHistory['recall_breakfast'] ?? ''}',
+              ),
+              pw.Text(
+                'Colación mañana: ${nutritionHistory['recall_morning_snack'] ?? ''}',
+              ),
+              pw.Text('Comida: ${nutritionHistory['recall_lunch'] ?? ''}'),
+              pw.Text(
+                'Colación tarde: ${nutritionHistory['recall_afternoon_snack'] ?? ''}',
+              ),
+              pw.Text('Cena: ${nutritionHistory['recall_dinner'] ?? ''}'),
+            ],
+
+            pw.SizedBox(height: 16),
+            pw.Divider(),
+
+            pw.Text(
+              'Antropometría',
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+
+            if (anthropometries.isEmpty)
+              pw.Text('Sin registros antropométricos')
+            else
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey400),
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(
+                      color: PdfColors.grey300,
+                    ),
+                    children: [
+                      _cell('Fecha', bold: true),
+                      _cell('Peso', bold: true),
+                      _cell('IMC', bold: true),
+                      _cell('Cintura', bold: true),
+                      _cell('Cadera', bold: true),
+                    ],
+                  ),
+                  ...anthropometries.map((item) {
+                    return pw.TableRow(
+                      children: [
+                        _cell(
+                          item['created_at']?.toString().substring(0, 10) ?? '',
+                        ),
+                        _cell('${item['weight'] ?? ''}'),
+                        _cell('${item['body_mass_index'] ?? ''}'),
+                        _cell('${item['waist'] ?? ''}'),
+                        _cell('${item['hip'] ?? ''}'),
+                      ],
+                    );
+                  }).toList(),
+                ],
+              ),
+
+            pw.SizedBox(height: 16),
+            pw.Divider(),
+
+            pw.Text(
+              'Bioquímicos',
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+
+            if (biochemicalTests.isEmpty)
+              pw.Text('Sin estudios bioquímicos')
+            else
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey400),
+                children: [
+                  pw.TableRow(
+                    decoration: const pw.BoxDecoration(
+                      color: PdfColors.grey300,
+                    ),
+                    children: [
+                      _cell('Fecha', bold: true),
+                      _cell('Examen', bold: true),
+                      _cell('Resultado', bold: true),
+                      _cell('Notas', bold: true),
+                    ],
+                  ),
+                  ...biochemicalTests.map((test) {
+                    return pw.TableRow(
+                      children: [
+                        _cell('${test['date'] ?? ''}'),
+                        _cell('${test['test_name'] ?? ''}'),
+                        _cell('${test['result'] ?? ''}'),
+                        _cell('${test['notes'] ?? ''}'),
+                      ],
+                    );
+                  }).toList(),
+                ],
+              ),
+
+            pw.SizedBox(height: 16),
+            pw.Divider(),
+
+            pw.Text(
+              'Seguimiento clínico',
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
+            ),
+            pw.SizedBox(height: 8),
+
+            if (followUpNotes.isEmpty)
+              pw.Text('Sin notas de seguimiento')
+            else
+              ...followUpNotes.map((note) {
+                return pw.Padding(
+                  padding: const pw.EdgeInsets.only(bottom: 10),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'Fecha: ${note['date'] ?? ''}',
+                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                      ),
+                      pw.Text('Evolución: ${note['evolution'] ?? ''}'),
+                      pw.Text('Adherencia: ${note['adherence'] ?? ''}'),
+                      pw.Text('Síntomas: ${note['symptoms'] ?? ''}'),
+                      pw.Text('Observaciones: ${note['observations'] ?? ''}'),
+                      pw.Text('Cambios al plan: ${note['plan_changes'] ?? ''}'),
+                    ],
+                  ),
+                );
+              }).toList(),
+
+            pw.SizedBox(height: 20),
+            pw.Divider(),
+            pw.Center(
+              child: pw.Text(
+                'Documento generado automáticamente',
+                style: const pw.TextStyle(fontSize: 10),
+              ),
+            ),
+          ];
+        },
+      ),
+    );
+
+    await Printing.layoutPdf(onLayout: (format) async => pdf.save());
+  }
+
   static pw.TableRow _buildRow(String label, String value) {
     return pw.TableRow(
       children: [
         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(label)),
         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(value)),
       ],
+    );
+  }
+
+  static pw.Widget _cell(String text, {bool bold = false}) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.all(6),
+      child: pw.Text(
+        text,
+        style: bold ? pw.TextStyle(fontWeight: pw.FontWeight.bold) : null,
+      ),
     );
   }
 }
