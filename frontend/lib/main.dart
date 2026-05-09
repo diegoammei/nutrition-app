@@ -376,10 +376,39 @@ class _PatientListScreenState extends State<PatientListScreen> {
               final patient = patients[index];
 
               return Card(
-                margin: const EdgeInsets.all(10),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
-                  title: Text(patient['name'] ?? ''),
-                  subtitle: Text(patient['email'] ?? ''),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 12,
+                  ),
+                  leading: CircleAvatar(
+                    backgroundColor: Colors.deepPurple.shade100,
+                    child: Text(
+                      (patient['name'] ?? 'P')[0].toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.deepPurple,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  title: Text(
+                    patient['name'] ?? '',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 4),
+                      Text(patient['email'] ?? ''),
+                      if ((patient['phone'] ?? '').toString().isNotEmpty)
+                        Text(patient['phone']),
+                    ],
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
                   onTap: () async {
                     await Navigator.push(
                       context,
@@ -2169,13 +2198,97 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: ListTile(
-        leading: CircleAvatar(child: Icon(icon)),
-        title: Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Colors.deepPurple.withOpacity(0.12),
+              child: Icon(icon, color: Colors.deepPurple),
+            ),
+
+            const SizedBox(height: 14),
+
+            Text(
+              title,
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+          ],
         ),
-        subtitle: Text(title),
+      ),
+    );
+  }
+
+  Widget _patientHeaderCard() {
+    final name = widget.patient['name'] ?? 'Paciente';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'P';
+
+    final gender = widget.patient['gender'] == 'male' ? 'Hombre' : 'Mujer';
+    final age = widget.patient['age']?.toString() ?? 'N/A';
+    final height = widget.patient['height']?.toString() ?? 'N/A';
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 34,
+              backgroundColor: Colors.deepPurple.shade100,
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  color: Colors.deepPurple,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 18),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    '$gender · $age años · $height cm',
+                    style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    widget.patient['email'] ?? '',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -2191,40 +2304,47 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _summaryCard(
-            icon: Icons.person,
-            title: 'Paciente',
-            value: widget.patient['name'] ?? '',
-          ),
+          _patientHeaderCard(),
 
-          _summaryCard(
-            icon: Icons.email,
-            title: 'Email',
-            value: widget.patient['email'] ?? '',
-          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.7,
+            children: [
+              _summaryCard(
+                icon: Icons.email,
+                title: 'Email',
+                value: widget.patient['email'] ?? '',
+              ),
 
-          _summaryCard(
-            icon: Icons.phone,
-            title: 'Teléfono',
-            value: widget.patient['phone'] ?? '',
-          ),
+              _summaryCard(
+                icon: Icons.phone,
+                title: 'Teléfono',
+                value: widget.patient['phone'] ?? '',
+              ),
 
-          _summaryCard(
-            icon: Icons.cake,
-            title: 'Edad',
-            value: '${widget.patient['age'] ?? ''} años',
-          ),
+              _summaryCard(
+                icon: Icons.cake,
+                title: 'Edad',
+                value: '${widget.patient['age'] ?? ''} años',
+              ),
 
-          _summaryCard(
-            icon: Icons.wc,
-            title: 'Género',
-            value: widget.patient['gender'] == 'male' ? 'Hombre' : 'Mujer',
-          ),
+              _summaryCard(
+                icon: Icons.wc,
+                title: 'Género',
+                value: widget.patient['gender'] == 'male' ? 'Hombre' : 'Mujer',
+              ),
 
-          _summaryCard(
-            icon: Icons.height,
-            title: 'Estatura',
-            value: '${widget.patient['height'] ?? 'N/A'} cm',
+              _summaryCard(
+                icon: Icons.height,
+                title: 'Estatura',
+                value: '${widget.patient['height'] ?? 'N/A'} cm',
+              ),
+            ],
           ),
 
           const SizedBox(height: 24),
@@ -2238,117 +2358,167 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           if (latestAnthro == null)
             const Text("No hay registros antropométricos")
           else ...[
-            _summaryCard(
-              icon: Icons.monitor_weight,
-              title: 'Peso',
-              value: '${latestAnthro['weight']} kg',
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
+              childAspectRatio: 1.5,
+              children: [
+                _summaryCard(
+                  icon: Icons.monitor_weight,
+                  title: 'Peso',
+                  value: '${latestAnthro['weight']} kg',
+                ),
+
+                _summaryCard(
+                  icon: Icons.straighten,
+                  title: 'IMC',
+                  value:
+                      '${latestAnthro['body_mass_index']?.toStringAsFixed(2) ?? 'N/A'}',
+                ),
+
+                _summaryCard(
+                  icon: Icons.accessibility_new,
+                  title: 'Cintura',
+                  value: '${latestAnthro['waist'] ?? 'N/A'} cm',
+                ),
+
+                _summaryCard(
+                  icon: Icons.accessibility,
+                  title: 'Cadera',
+                  value: '${latestAnthro['hip'] ?? 'N/A'} cm',
+                ),
+              ],
             ),
 
-            _summaryCard(
-              icon: Icons.straighten,
-              title: 'IMC',
-              value:
-                  '${latestAnthro['body_mass_index']?.toStringAsFixed(2) ?? 'N/A'}',
+            const SizedBox(height: 20),
+
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Evolución de peso",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    if (spots.isNotEmpty)
+                      SizedBox(
+                        height: 220,
+                        child: LineChart(
+                          LineChartData(
+                            gridData: FlGridData(show: true),
+                            borderData: FlBorderData(show: true),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: spots,
+                                isCurved: true,
+
+                                color: Colors.deepPurple,
+
+                                barWidth: 4,
+
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: Colors.deepPurple.withOpacity(0.15),
+                                ),
+
+                                dotData: FlDotData(show: true),
+
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.deepPurple,
+                                    Colors.purpleAccent,
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const Text("No hay datos para gráfica"),
+                  ],
+                ),
+              ),
             ),
 
-            _summaryCard(
-              icon: Icons.accessibility_new,
-              title: 'Cintura',
-              value: '${latestAnthro['waist'] ?? 'N/A'} cm',
-            ),
+            const SizedBox(height: 24),
 
-            _summaryCard(
-              icon: Icons.accessibility,
-              title: 'Cadera',
-              value: '${latestAnthro['hip'] ?? 'N/A'} cm',
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Evolución de IMC",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    if (imcSpots.isNotEmpty)
+                      SizedBox(
+                        height: 220,
+                        child: LineChart(
+                          LineChartData(
+                            gridData: FlGridData(show: true),
+                            borderData: FlBorderData(show: true),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: imcSpots,
+                                isCurved: true,
+
+                                color: Colors.deepPurple,
+
+                                barWidth: 4,
+
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  color: Colors.deepPurple.withOpacity(0.15),
+                                ),
+
+                                dotData: FlDotData(show: true),
+
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.deepPurple,
+                                    Colors.purpleAccent,
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                    else
+                      const Text("No hay datos para gráfica"),
+                  ],
+                ),
+              ),
             ),
           ],
-
-          const SizedBox(height: 20),
-
-          Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Evolución de peso",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  if (spots.isNotEmpty)
-                    SizedBox(
-                      height: 220,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: true),
-                          borderData: FlBorderData(show: true),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: spots,
-                              isCurved: true,
-                              dotData: FlDotData(show: true),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    const Text("No hay datos para gráfica"),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Evolución de IMC",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  if (imcSpots.isNotEmpty)
-                    SizedBox(
-                      height: 220,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(show: true),
-                          borderData: FlBorderData(show: true),
-                          lineBarsData: [
-                            LineChartBarData(
-                              spots: imcSpots,
-                              isCurved: true,
-                              dotData: FlDotData(show: true),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  else
-                    const Text("No hay datos para gráfica"),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -2393,37 +2563,69 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     : (plan['goal'] ?? 'Sin objetivo');
 
                 return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  child: ExpansionTile(
-                    initiallyExpanded: index == 0,
-                    title: Text(
-                      "Objetivo: $goalText",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      "${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
-                    ),
-                    childrenPadding: const EdgeInsets.all(12),
-                    children: [
-                      Text(
-                        "Proteína: ${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                      ),
-                      Text(
-                        "Carbohidratos: ${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                      ),
-                      Text(
-                        "Grasas: ${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                      ),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  child: Padding(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const CircleAvatar(child: Icon(Icons.eco)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                "Plan $goalText",
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Chip(
+                              label: const Text('Activo'),
+                              backgroundColor: Colors.green.shade50,
+                            ),
+                          ],
+                        ),
 
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
-                      ElevatedButton(
-                        onPressed: () {
-                          _openEditMenu(plan);
-                        },
-                        child: const Text('Editar menú'),
-                      ),
-                    ],
+                        Text(
+                          "${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal/día",
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 12),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Proteína\n${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                            ),
+                            Text(
+                              "Carbs\n${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                            ),
+                            Text(
+                              "Grasas\n${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 18),
+
+                        ElevatedButton(
+                          onPressed: () {
+                            _openEditMenu(plan);
+                          },
+                          child: const Text('Editar menú'),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }).toList(),
@@ -2440,14 +2642,36 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.patient['name'] ?? ''),
-          bottom: const TabBar(
-            isScrollable: true,
-            tabs: [
-              Tab(text: 'Resumen'),
-              Tab(text: 'Historia'),
-              Tab(text: 'Planes'),
-              Tab(text: 'Seguimiento'),
-            ],
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(70),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: TabBar(
+                indicator: BoxDecoration(
+                  color: Colors.deepPurple,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.deepPurple,
+
+                dividerColor: Colors.transparent,
+
+                indicatorSize: TabBarIndicatorSize.tab,
+
+                tabs: const [
+                  Tab(text: 'Resumen'),
+                  Tab(text: 'Historia'),
+                  Tab(text: 'Planes'),
+                  Tab(text: 'Seguimiento'),
+                ],
+              ),
+            ),
           ),
           actions: [
             IconButton(
@@ -2460,9 +2684,19 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
+        floatingActionButton: FloatingActionButton.extended(
+          backgroundColor: Colors.deepPurple,
+          foregroundColor: Colors.white,
+          elevation: 4,
+
           onPressed: _openAnthropometryForm,
-          child: const Icon(Icons.add),
+
+          icon: const Icon(Icons.add),
+
+          label: const Text(
+            'Antropometría',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),
@@ -2515,841 +2749,21 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               final latestAnthro = anthropometries.isNotEmpty
                   ? anthropometries.last
                   : null;
-              /*final latestPlan = nutritionPlans.isNotEmpty
-                ? nutritionPlans.last
-                : null;*/
-
-              return SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Nombre: ${widget.patient['name'] ?? ''}",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text("Email: ${widget.patient['email'] ?? ''}"),
-                    const SizedBox(height: 10),
-                    Text("Teléfono: ${widget.patient['phone'] ?? ''}"),
-                    const SizedBox(height: 10),
-                    Text("Edad: ${widget.patient['age']?.toString() ?? ''}"),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Género: ${widget.patient['gender'] == 'male' ? 'Hombre' : 'Mujer'}",
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Estatura: ${widget.patient['height']?.toString() ?? 'N/A'} cm",
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      "Patología: ${_getPathologyText(widget.patient['pathology'])}",
-                    ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      "Antropometría",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (latestAnthro == null)
-                      const Text("No hay registros antropométricos")
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Último peso: ${latestAnthro['weight']} kg"),
-                          const SizedBox(height: 8),
-                          Text("Última estatura: ${latestAnthro['height']} cm"),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Último IMC: ${latestAnthro['body_mass_index']?.toStringAsFixed(2) ?? 'N/A'}",
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Última cintura: ${latestAnthro['waist'] ?? 'N/A'}",
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Última cadera: ${latestAnthro['hip'] ?? 'N/A'}",
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
-                            "Historial",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          ...anthropometries.reversed.map((item) {
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              child: ListTile(
-                                leading: const Icon(Icons.monitor_weight),
-                                title: Text("Peso: ${item['weight']} kg"),
-                                subtitle: Text(
-                                  "IMC: ${item['body_mass_index']?.toStringAsFixed(2) ?? 'N/A'}\nFecha: ${_formatDate(item['created_at'])}",
-                                ),
-                                isThreeLine: true,
-                              ),
-                            );
-                          }).toList(),
-                        ],
-                      ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Evolución de peso",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    if (spots.isNotEmpty)
-                      SizedBox(
-                        height: 200,
-                        child: LineChart(
-                          LineChartData(
-                            gridData: FlGridData(show: true),
-                            titlesData: FlTitlesData(
-                              show: true,
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 40,
-                                  getTitlesWidget: (value, meta) {
-                                    final index = value.toInt();
-
-                                    if (index < 0 ||
-                                        index >= anthropometries.length) {
-                                      return const SizedBox.shrink();
-                                    }
-
-                                    final item = anthropometries[index];
-                                    final dateText = _formatShortDate(
-                                      item['created_at'],
-                                    );
-
-                                    return Text(
-                                      dateText,
-                                      style: const TextStyle(fontSize: 10),
-                                    );
-                                  },
-                                ),
-                              ),
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 40,
-                                ),
-                              ),
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-                            borderData: FlBorderData(show: true),
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: spots,
-                                isCurved: true,
-                                dotData: FlDotData(show: true),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      const Text("No hay datos para gráfica"),
-                    const SizedBox(height: 24),
-
-                    const SizedBox(height: 24),
-
-                    const Text(
-                      "Evolución de IMC",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    if (imcSpots.isNotEmpty)
-                      SizedBox(
-                        height: 200,
-                        child: LineChart(
-                          LineChartData(
-                            gridData: FlGridData(show: true),
-
-                            titlesData: FlTitlesData(
-                              show: true,
-
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 40,
-
-                                  getTitlesWidget: (value, meta) {
-                                    final index = value.toInt();
-
-                                    if (index < 0 ||
-                                        index >= anthropometries.length) {
-                                      return const SizedBox.shrink();
-                                    }
-
-                                    final item = anthropometries[index];
-
-                                    final dateText = _formatShortDate(
-                                      item['created_at'],
-                                    );
-
-                                    return Text(
-                                      dateText,
-                                      style: const TextStyle(fontSize: 10),
-                                    );
-                                  },
-                                ),
-                              ),
-
-                              leftTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 40,
-                                ),
-                              ),
-
-                              topTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-
-                              rightTitles: AxisTitles(
-                                sideTitles: SideTitles(showTitles: false),
-                              ),
-                            ),
-
-                            borderData: FlBorderData(show: true),
-
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: imcSpots,
-                                isCurved: true,
-                                dotData: FlDotData(show: true),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    else
-                      const Text("No hay datos para gráfica"),
-
-                    const Text(
-                      "Plan nutricional",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: _openNutritionPlanForm,
-                      child: const Text('Crear plan nutricional'),
-                    ),
-                    const SizedBox(height: 12),
-                    if (nutritionPlans.isEmpty)
-                      const Text("No hay planes nutricionales")
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...nutritionPlans.reversed.toList().asMap().entries.map((
-                            entry,
-                          ) {
-                            final index = entry.key;
-                            final plan = entry.value;
-                            final goalText = plan['goal'] == 'deficit'
-                                ? 'Déficit'
-                                : plan['goal'] == 'maintain'
-                                ? 'Mantenimiento'
-                                : plan['goal'] == 'superavit'
-                                ? 'Superávit'
-                                : (plan['goal'] ?? 'Sin objetivo');
-                            final calories =
-                                (plan['total_calories'] as num?)?.toDouble() ??
-                                0;
-
-                            final pathologyCodes =
-                                (widget.patient['pathologies_detail']
-                                            as List<dynamic>? ??
-                                        [])
-                                    .map((p) => p['code'].toString())
-                                    .toList();
-
-                            final dailyEquivalents =
-                                EquivalentPlanService.calculateDailyEquivalents(
-                                  calories: calories,
-                                  pathologies: pathologyCodes,
-                                );
-
-                            final mealDistribution =
-                                EquivalentPlanService.distributeByMeal(
-                                  dailyEquivalents: dailyEquivalents,
-                                );
-
-                            final menus =
-                                FoodSelectionService.generateMenuOptions(
-                                  mealDistribution: mealDistribution,
-                                  pathologies: pathologyCodes,
-                                  optionsCount: 3,
-                                );
-
-                            final equivalentMenu = menus.first;
-
-                            final readableMeals =
-                                MealBuilderService.buildReadableMeals(
-                                  equivalentMenu,
-                                );
-
-                            final recommendation =
-                                RecommendationService.generateRecommendation(
-                                  pathologies: pathologyCodes,
-                                  menu: equivalentMenu,
-                                );
-
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: ExpansionTile(
-                                initiallyExpanded: index == 0,
-                                title: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Objetivo: $goalText",
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 6),
-                                    Text(
-                                      "Patología considerada: ${_getPathologyText(widget.patient['pathology'])}",
-                                      style: const TextStyle(fontSize: 13),
-                                    ),
-                                  ],
-                                ),
-                                subtitle: Text(
-                                  "${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal • ${_formatDate(plan['created_at'])}",
-                                ),
-                                childrenPadding: const EdgeInsets.all(12),
-                                children: [
-                                  Text(
-                                    "Objetivo: $goalText",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "Calorías totales: ${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
-                                  ),
-                                  Text(
-                                    "Proteína: ${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                                  ),
-                                  Text(
-                                    "Carbohidratos: ${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                                  ),
-                                  Text(
-                                    "Grasas: ${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    "Fecha: ${_formatDate(plan['created_at'])}",
-                                  ),
-                                  const SizedBox(height: 12),
-
-                                  const SizedBox(height: 12),
-
-                                  const Text(
-                                    'Equivalentes diarios',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 6),
-
-                                  ...dailyEquivalents.entries.map((entry) {
-                                    return Text('${entry.key}: ${entry.value}');
-                                  }).toList(),
-
-                                  const SizedBox(height: 12),
-
-                                  const Text(
-                                    'Distribución por horarios',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 6),
-
-                                  ...mealDistribution.entries.map((mealEntry) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            mealEntry.key,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          ...mealEntry.value.entries
-                                              .where((item) => item.value > 0)
-                                              .map(
-                                                (item) => Text(
-                                                  '${item.key}: ${item.value}',
-                                                ),
-                                              ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-
-                                  const Text(
-                                    'Platillos sugeridos',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  ...menus.asMap().entries.map((menuEntry) {
-                                    final index = menuEntry.key;
-                                    final menu = menuEntry.value;
-
-                                    final readableMeals =
-                                        MealBuilderService.buildReadableMeals(
-                                          menu,
-                                        );
-
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        const SizedBox(height: 12),
-
-                                        Text(
-                                          'Menú opción ${index + 1}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 6),
-
-                                        ...readableMeals.entries.map((entry) {
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                              bottom: 8,
-                                            ),
-                                            child: Text(
-                                              '${entry.key}: ${entry.value}',
-                                            ),
-                                          );
-                                        }).toList(),
-                                      ],
-                                    );
-                                  }).toList(),
-
-                                  const SizedBox(height: 12),
-
-                                  const Text(
-                                    'Menú sugerido',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  Center(
-                                    child: Column(
-                                      children: [
-                                        _menuActionButton(
-                                          text: 'Generar nuevos menús',
-                                          onPressed: () {
-                                            setState(() {});
-                                          },
-                                        ),
-
-                                        _menuActionButton(
-                                          text: 'Editar menú',
-                                          onPressed: () => _openEditMenu(
-                                            Map<String, dynamic>.from(plan),
-                                          ),
-                                        ),
-
-                                        _menuActionButton(
-                                          text: 'Historia nutricional',
-                                          onPressed:
-                                              _openNutritionHistoryDialog,
-                                        ),
-
-                                        _menuActionButton(
-                                          text: 'Bioquímicos',
-                                          onPressed:
-                                              _openBiochemicalTestsDialog,
-                                        ),
-
-                                        _menuActionButton(
-                                          text: 'Seguimiento',
-                                          onPressed: _openFollowUpNotesDialog,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                  ...equivalentMenu.entries.map((entry) {
-                                    return Padding(
-                                      padding: const EdgeInsets.only(bottom: 8),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            entry.key,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          ...entry.value.map(
-                                            (item) => Text('• $item'),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }).toList(),
-
-                                  const SizedBox(height: 12),
-
-                                  const Text(
-                                    'Recomendaciones',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-
-                                  const SizedBox(height: 6),
-
-                                  Text(recommendation),
-
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          final calories =
-                                              (plan['total_calories'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-                                          final protein =
-                                              (plan['protein'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-                                          final carbs =
-                                              (plan['carbs'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-                                          final fats =
-                                              (plan['fats'] as num?)
-                                                  ?.toDouble() ??
-                                              0;
-
-                                          final imc = latestAnthro != null
-                                              ? (latestAnthro['body_mass_index']
-                                                        as num?)
-                                                    ?.toDouble()
-                                              : null;
-
-                                          final height =
-                                              (widget.patient['height'] as num?)
-                                                  ?.toDouble();
-
-                                          final weight = latestAnthro != null
-                                              ? (latestAnthro['weight'] as num?)
-                                                    ?.toDouble()
-                                              : null;
-
-                                          final age =
-                                              widget.patient['age'] is int
-                                              ? widget.patient['age'] as int
-                                              : int.tryParse(
-                                                  widget.patient['age']
-                                                          ?.toString() ??
-                                                      '',
-                                                );
-
-                                          PdfService.generateNutritionPlanPdf(
-                                            patientName:
-                                                widget.patient['name']
-                                                    ?.toString() ??
-                                                'Paciente',
-                                            goal: goalText,
-                                            calories: calories,
-                                            protein: protein,
-                                            carbs: carbs,
-                                            fats: fats,
-                                            menu: equivalentMenu,
-                                            menus: menus,
-                                            readableMeals: readableMeals,
-                                            recommendation: recommendation,
-                                            imc: imc,
-                                            gender:
-                                                widget.patient['gender'] ==
-                                                    'male'
-                                                ? 'Hombre'
-                                                : 'Mujer',
-                                            height: height,
-                                            age: age,
-                                            weight: weight,
-                                          );
-                                        },
-                                        child: const Text('Generar PDF'),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          final confirmed = await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) {
-                                              return AlertDialog(
-                                                title: const Text(
-                                                  'Eliminar plan nutricional',
-                                                ),
-                                                content: const Text(
-                                                  '¿Seguro que quieres eliminar este plan nutricional?',
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () =>
-                                                        Navigator.pop(
-                                                          context,
-                                                          false,
-                                                        ),
-                                                    child: const Text(
-                                                      'Cancelar',
-                                                    ),
-                                                  ),
-                                                  ElevatedButton(
-                                                    onPressed: () =>
-                                                        Navigator.pop(
-                                                          context,
-                                                          true,
-                                                        ),
-                                                    child: const Text(
-                                                      'Eliminar',
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-
-                                          if (confirmed != true) return;
-
-                                          try {
-                                            await NutritionPlanService.deleteNutritionPlan(
-                                              plan['id'],
-                                            );
-
-                                            if (!mounted) return;
-
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Plan nutricional eliminado',
-                                                ),
-                                              ),
-                                            );
-
-                                            setState(() {
-                                              _loadData();
-                                            });
-                                          } catch (e) {
-                                            if (!mounted) return;
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text('Error: $e'),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        child: const Text('Eliminar'),
-                                      ),
-
-                                      const SizedBox(width: 10),
-
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          final biochemicalTests =
-                                              await BiochemicalTestService.getTestsByPatient(
-                                                widget.patient['id'],
-                                              );
-
-                                          final followUpNotes =
-                                              await FollowUpNoteService.getNotesByPatient(
-                                                widget.patient['id'],
-                                              );
-
-                                          final histories =
-                                              await NutritionHistoryService.getHistoriesByPatient(
-                                                widget.patient['id'],
-                                              );
-
-                                          final nutritionHistory =
-                                              histories.isNotEmpty
-                                              ? histories.first
-                                              : null;
-
-                                          await PdfService.generateClinicalRecordPdf(
-                                            patient: widget.patient,
-
-                                            anthropometries: anthropometries,
-
-                                            nutritionPlans: nutritionPlans,
-
-                                            biochemicalTests: biochemicalTests,
-
-                                            followUpNotes: followUpNotes,
-
-                                            nutritionHistory: nutritionHistory,
-                                          );
-                                        },
-                                        child: const Text('Expediente PDF'),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            );
-                          }).toList(),
-                        ],
-                      ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      "Citas",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ElevatedButton(
-                      onPressed: _openAppointmentForm,
-                      child: const Text('Agregar cita'),
-                    ),
-                    const SizedBox(height: 12),
-                    if (appointments.isEmpty)
-                      const Text("No hay citas registradas")
-                    else
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          ...appointments.map((appointment) {
-                            final statusText =
-                                appointment['status'] == 'completed'
-                                ? 'Completada'
-                                : appointment['status'] == 'cancelled'
-                                ? 'Cancelada'
-                                : 'Pendiente';
-
-                            return Card(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              child: ListTile(
-                                title: Text(_formatDate(appointment['date'])),
-                                subtitle: Text(
-                                  'Estado: $statusText'
-                                  '${appointment['notes'] != null && appointment['notes'].toString().isNotEmpty ? '\nNotas: ${appointment['notes']}' : ''}',
-                                ),
-                                isThreeLine:
-                                    appointment['notes'] != null &&
-                                    appointment['notes'].toString().isNotEmpty,
-                                trailing: IconButton(
-                                  icon: const Icon(Icons.delete),
-                                  onPressed: () async {
-                                    final confirmed = await showDialog<bool>(
-                                      context: context,
-                                      builder: (context) {
-                                        return AlertDialog(
-                                          title: const Text('Eliminar cita'),
-                                          content: const Text(
-                                            '¿Seguro que quieres eliminar esta cita?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context, false),
-                                              child: const Text('Cancelar'),
-                                            ),
-                                            ElevatedButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context, true),
-                                              child: const Text('Eliminar'),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-
-                                    if (confirmed != true) return;
-
-                                    try {
-                                      await AppointmentService.deleteAppointment(
-                                        appointment['id'],
-                                      );
-
-                                      if (!mounted) return;
-
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text('Cita eliminada'),
-                                        ),
-                                      );
-
-                                      setState(() {
-                                        _loadData();
-                                      });
-                                    } catch (e) {
-                                      if (!mounted) return;
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text('Error: $e')),
-                                      );
-                                    }
-                                  },
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ],
-                      ),
-                  ],
-                ),
+              return TabBarView(
+                children: [
+                  _buildResumenTab(
+                    anthropometries: anthropometries,
+                    spots: spots,
+                    imcSpots: imcSpots,
+                    latestAnthro: latestAnthro,
+                  ),
+
+                  const Center(child: Text('Historia')),
+
+                  _buildPlanesTab(nutritionPlans: nutritionPlans),
+
+                  const Center(child: Text('Seguimiento')),
+                ],
               );
             },
           ),
