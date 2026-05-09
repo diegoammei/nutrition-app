@@ -27,7 +27,7 @@ class PdfService {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(24),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 40),
         build: (context) {
           return [
             pw.Center(
@@ -212,7 +212,7 @@ class PdfService {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(24),
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 40),
         build: (context) {
           return [
             pw.Center(

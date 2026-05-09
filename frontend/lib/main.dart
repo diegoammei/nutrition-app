@@ -28,9 +28,90 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Software Nutrición',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.teal),
+
+      title: 'NutriApp',
+
+      theme: ThemeData(
+        useMaterial3: true,
+
+        scaffoldBackgroundColor: const Color(0xFFF6F3FB),
+
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.deepPurple,
+          brightness: Brightness.light,
+        ),
+
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xFFF6F3FB),
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Colors.black87,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+          iconTheme: IconThemeData(color: Colors.black87),
+        ),
+
+        cardTheme: CardThemeData(
+          elevation: 2,
+          color: Colors.white,
+          shadowColor: Colors.black12,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            elevation: 1,
+            backgroundColor: Colors.deepPurple,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            textStyle: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 16,
+          ),
+
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide.none,
+          ),
+
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide.none,
+          ),
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: const BorderSide(color: Colors.deepPurple, width: 1.5),
+          ),
+        ),
+
+        tabBarTheme: const TabBarThemeData(
+          labelColor: Colors.deepPurple,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: Colors.deepPurple,
+          dividerColor: Colors.transparent,
+        ),
+      ),
+
       home: const PatientListScreen(),
     );
   }
@@ -669,6 +750,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           builder: (context, setModalState) {
             return AlertDialog(
               title: const Text('Crear plan nutricional'),
+              contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
               content: SingleChildScrollView(
                 child: Form(
                   key: formKey,
@@ -816,11 +898,13 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   ),
                 ),
               ),
+              actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: const Text('Cancelar'),
                 ),
+                const SizedBox(width: 12),
                 ElevatedButton(
                   onPressed: () async {
                     if (!formKey.currentState!.validate()) return;
@@ -1479,6 +1563,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       maxLines: 2,
                     ),
 
+                    const SizedBox(height: 12),
+
                     TextField(
                       controller: recallMorningSnackController,
                       decoration: const InputDecoration(
@@ -1487,11 +1573,15 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       maxLines: 2,
                     ),
 
+                    const SizedBox(height: 12),
+
                     TextField(
                       controller: recallLunchController,
                       decoration: const InputDecoration(labelText: 'Comida'),
                       maxLines: 2,
                     ),
+
+                    const SizedBox(height: 12),
 
                     TextField(
                       controller: recallAfternoonSnackController,
@@ -1500,6 +1590,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       ),
                       maxLines: 2,
                     ),
+
+                    const SizedBox(height: 12),
 
                     TextField(
                       controller: recallDinnerController,
@@ -1766,15 +1858,24 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     decoration: const InputDecoration(labelText: 'Evolución'),
                     maxLines: 3,
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextField(
                     controller: adherenceController,
                     decoration: const InputDecoration(labelText: 'Adherencia'),
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextField(
                     controller: symptomsController,
                     decoration: const InputDecoration(labelText: 'Síntomas'),
                     maxLines: 2,
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextField(
                     controller: observationsController,
                     decoration: const InputDecoration(
@@ -1782,6 +1883,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     ),
                     maxLines: 3,
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextField(
                     controller: planChangesController,
                     decoration: const InputDecoration(
@@ -2032,6 +2136,31 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     }
   }
 
+  Widget _menuActionButton({
+    required String text,
+    required VoidCallback onPressed,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: SizedBox(
+        width: 260,
+        height: 44,
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            elevation: 2,
+            backgroundColor: const Color(0xFFF8F4FC),
+            foregroundColor: Colors.deepPurple,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+          ),
+          onPressed: onPressed,
+          child: Text(text),
+        ),
+      ),
+    );
+  }
+
   Widget _summaryCard({
     required IconData icon,
     required String title,
@@ -2225,91 +2354,84 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
-  Widget _buildPlanesTab({
-  required List<dynamic> nutritionPlans,
-}) {
-  return SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Plan nutricional",
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+  Widget _buildPlanesTab({required List<dynamic> nutritionPlans}) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Plan nutricional",
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
-        ),
 
-        const SizedBox(height: 12),
+          const SizedBox(height: 12),
 
-        ElevatedButton(
-          onPressed: _openNutritionPlanForm,
-          child: const Text('Crear plan nutricional'),
-        ),
-
-        const SizedBox(height: 12),
-
-        if (nutritionPlans.isEmpty)
-          const Text("No hay planes nutricionales")
-        else
-          Column(
-            children: nutritionPlans.reversed.toList().asMap().entries.map((
-              entry,
-            ) {
-              final index = entry.key;
-              final plan = entry.value;
-
-              final goalText = plan['goal'] == 'deficit'
-                  ? 'Déficit'
-                  : plan['goal'] == 'maintain'
-                  ? 'Mantenimiento'
-                  : plan['goal'] == 'superavit'
-                  ? 'Superávit'
-                  : (plan['goal'] ?? 'Sin objetivo');
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ExpansionTile(
-                  initiallyExpanded: index == 0,
-                  title: Text(
-                    "Objetivo: $goalText",
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text(
-                    "${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
-                  ),
-                  childrenPadding: const EdgeInsets.all(12),
-                  children: [
-                    Text(
-                      "Proteína: ${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                    ),
-                    Text(
-                      "Carbohidratos: ${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                    ),
-                    Text(
-                      "Grasas: ${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    ElevatedButton(
-                      onPressed: () {
-                        _openEditMenu(plan);
-                      },
-                      child: const Text('Editar menú'),
-                    ),
-                  ],
-                ),
-              );
-            }).toList(),
+          ElevatedButton(
+            onPressed: _openNutritionPlanForm,
+            child: const Text('Crear plan nutricional'),
           ),
-      ],
-    ),
-  );
-}
+
+          const SizedBox(height: 12),
+
+          if (nutritionPlans.isEmpty)
+            const Text("No hay planes nutricionales")
+          else
+            Column(
+              children: nutritionPlans.reversed.toList().asMap().entries.map((
+                entry,
+              ) {
+                final index = entry.key;
+                final plan = entry.value;
+
+                final goalText = plan['goal'] == 'deficit'
+                    ? 'Déficit'
+                    : plan['goal'] == 'maintain'
+                    ? 'Mantenimiento'
+                    : plan['goal'] == 'superavit'
+                    ? 'Superávit'
+                    : (plan['goal'] ?? 'Sin objetivo');
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ExpansionTile(
+                    initiallyExpanded: index == 0,
+                    title: Text(
+                      "Objetivo: $goalText",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      "${((plan['total_calories'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} kcal",
+                    ),
+                    childrenPadding: const EdgeInsets.all(12),
+                    children: [
+                      Text(
+                        "Proteína: ${((plan['protein'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                      ),
+                      Text(
+                        "Carbohidratos: ${((plan['carbs'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                      ),
+                      Text(
+                        "Grasas: ${((plan['fats'] as num?)?.toDouble().toStringAsFixed(0) ?? 'N/A')} g",
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      ElevatedButton(
+                        onPressed: () {
+                          _openEditMenu(plan);
+                        },
+                        child: const Text('Editar menú'),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -2858,37 +2980,41 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                     ),
                                   ),
 
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      setState(() {});
-                                    },
-                                    child: const Text('Generar nuevos menús'),
-                                  ),
-                                  const SizedBox(height: 8),
+                                  Center(
+                                    child: Column(
+                                      children: [
+                                        _menuActionButton(
+                                          text: 'Generar nuevos menús',
+                                          onPressed: () {
+                                            setState(() {});
+                                          },
+                                        ),
 
-                                  ElevatedButton(
-                                    onPressed: () => _openEditMenu(
-                                      Map<String, dynamic>.from(plan),
+                                        _menuActionButton(
+                                          text: 'Editar menú',
+                                          onPressed: () => _openEditMenu(
+                                            Map<String, dynamic>.from(plan),
+                                          ),
+                                        ),
+
+                                        _menuActionButton(
+                                          text: 'Historia nutricional',
+                                          onPressed:
+                                              _openNutritionHistoryDialog,
+                                        ),
+
+                                        _menuActionButton(
+                                          text: 'Bioquímicos',
+                                          onPressed:
+                                              _openBiochemicalTestsDialog,
+                                        ),
+
+                                        _menuActionButton(
+                                          text: 'Seguimiento',
+                                          onPressed: _openFollowUpNotesDialog,
+                                        ),
+                                      ],
                                     ),
-                                    child: const Text('Editar menú'),
-                                  ),
-                                  const SizedBox(height: 8),
-
-                                  ElevatedButton(
-                                    onPressed: _openNutritionHistoryDialog,
-                                    child: const Text('Historia nutricional'),
-                                  ),
-
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      _openBiochemicalTestsDialog();
-                                    },
-                                    child: const Text('Bioquímicos'),
-                                  ),
-
-                                  ElevatedButton(
-                                    onPressed: _openFollowUpNotesDialog,
-                                    child: const Text('Seguimiento'),
                                   ),
 
                                   ...equivalentMenu.entries.map((entry) {
