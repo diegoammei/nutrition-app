@@ -570,6 +570,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: heightController,
                     maxLines: 1,
@@ -592,6 +595,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: waistController,
                     maxLines: 1,
@@ -609,6 +615,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: hipController,
                     maxLines: 1,
@@ -626,6 +635,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -1182,6 +1193,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: ageController,
                     maxLines: 1,
@@ -1202,6 +1216,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: heightController,
                     maxLines: 1,
@@ -1224,6 +1241,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   DropdownButtonFormField<String>(
                     initialValue: gender,
                     items: const [
@@ -2313,7 +2333,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 1.7,
+            childAspectRatio: 4.5,
             children: [
               _summaryCard(
                 icon: Icons.email,
@@ -2364,7 +2384,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               physics: const NeverScrollableScrollPhysics(),
               crossAxisSpacing: 12,
               mainAxisSpacing: 12,
-              childAspectRatio: 1.5,
+              childAspectRatio: 4.5,
               children: [
                 _summaryCard(
                   icon: Icons.monitor_weight,
@@ -2615,6 +2635,29 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                             ),
                           ],
                         ),
+
+                        const SizedBox(height: 18),
+
+                        if (plan['menu'] != null) ...[
+                          const Divider(),
+
+                          const SizedBox(height: 12),
+
+                          const Text(
+                            'Menú sugerido',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Text(
+                            plan['menu'].toString(),
+                            style: const TextStyle(height: 1.5),
+                          ),
+                        ],
 
                         const SizedBox(height: 18),
 
