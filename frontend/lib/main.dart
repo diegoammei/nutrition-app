@@ -2216,32 +2216,37 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     required String value,
   }) {
     return Card(
-      elevation: 3,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        child: Row(
           children: [
             CircleAvatar(
-              radius: 20,
+              radius: 18,
               backgroundColor: Colors.deepPurple.withOpacity(0.12),
-              child: Icon(icon, color: Colors.deepPurple),
+              child: Icon(icon, size: 18, color: Colors.deepPurple),
             ),
-
-            const SizedBox(height: 14),
-
-            Text(
-              title,
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
-            ),
-
-            const SizedBox(height: 6),
-
-            Text(
-              value,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -2544,6 +2549,66 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
+  Future<void> _openViewMenu(Map<String, dynamic> plan) async {
+    final items = await MenuItemService.getMenuItemsByPlan(plan['id']);
+
+    final Map<String, List<dynamic>> grouped = {};
+
+    for (final item in items) {
+      final meal = item['meal_time'] ?? 'Comida';
+      grouped.putIfAbsent(meal, () => []);
+      grouped[meal]!.add(item);
+    }
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Menú sugerido'),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: grouped.isEmpty
+                  ? const Text('No hay menú registrado')
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: grouped.entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 14),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                entry.key,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              ...entry.value.map(
+                                (item) => Text('- ${item['item_text']}'),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildPlanesTab({required List<dynamic> nutritionPlans}) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -2661,11 +2726,22 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                         const SizedBox(height: 18),
 
-                        ElevatedButton(
-                          onPressed: () {
-                            _openEditMenu(plan);
-                          },
-                          child: const Text('Editar menú'),
+                        Row(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                _openViewMenu(Map<String, dynamic>.from(plan));
+                              },
+                              child: const Text('Ver menú'),
+                            ),
+                            const SizedBox(width: 12),
+                            OutlinedButton(
+                              onPressed: () {
+                                _openEditMenu(Map<String, dynamic>.from(plan));
+                              },
+                              child: const Text('Editar menú'),
+                            ),
+                          ],
                         ),
                       ],
                     ),
