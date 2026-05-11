@@ -4,6 +4,14 @@ import 'dart:math';
 class FoodSelectionService {
   static final Random _random = Random();
 
+  static const List<String> mealOrder = [
+    'Desayuno',
+    'Colación mañana',
+    'Comida',
+    'Colación tarde',
+    'Cena',
+  ];
+
   static List<String> selectFoodsForGroup({
     required String group,
     required int equivalents,
@@ -49,7 +57,6 @@ class FoodSelectionService {
 
     final selectedFoods = <FoodEquivalent>[];
 
-    // 1. Primero intenta alimentos no usados en este menú ni en otros menús
     for (final food in prioritizedFoods) {
       if (selectedFoods.length >= equivalents) break;
 
@@ -66,7 +73,6 @@ class FoodSelectionService {
       }
     }
 
-    // 2. Si no alcanza, permite alimentos usados en otros menús, pero no en este
     if (selectedFoods.length < equivalents) {
       for (final food in prioritizedFoods) {
         if (selectedFoods.length >= equivalents) break;
@@ -81,7 +87,6 @@ class FoodSelectionService {
       }
     }
 
-    // 3. Si todavía no alcanza, permite repetir para completar equivalentes
     if (selectedFoods.length < equivalents) {
       for (final food in prioritizedFoods) {
         if (selectedFoods.length >= equivalents) break;
@@ -102,7 +107,14 @@ class FoodSelectionService {
     final Map<String, List<String>> menu = {};
     final usedFoodsInMenu = <String>{};
 
-    mealDistribution.forEach((meal, groups) {
+    for (final meal in mealOrder) {
+      final groups = mealDistribution[meal];
+
+      if (groups == null) {
+        menu[meal] = [];
+        continue;
+      }
+
       final List<String> mealFoods = [];
 
       groups.forEach((group, equivalents) {
@@ -118,7 +130,7 @@ class FoodSelectionService {
       });
 
       menu[meal] = mealFoods;
-    });
+    }
 
     return menu;
   }

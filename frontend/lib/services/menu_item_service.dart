@@ -5,6 +5,19 @@ class MenuItemService {
   static const String baseUrl =
       'http://127.0.0.1:8001/api/nutrition-plan-menu-items/';
 
+  static const List<String> mealOrder = [
+    'Desayuno',
+    'Colación mañana',
+    'Comida',
+    'Colación tarde',
+    'Cena',
+  ];
+
+  static int _mealIndex(String mealTime) {
+    final index = mealOrder.indexOf(mealTime);
+    return index == -1 ? 999 : index;
+  }
+
   static Future<List<dynamic>> getMenuItemsByPlan(int nutritionPlanId) async {
     final response = await http.get(Uri.parse(baseUrl));
 
@@ -16,13 +29,22 @@ class MenuItemService {
           .toList();
 
       items.sort((a, b) {
-        final mealCompare = a['meal_time'].toString().compareTo(
-          b['meal_time'].toString(),
-        );
+        final optionA = (a['option_number'] as num?)?.toInt() ?? 1;
+        final optionB = (b['option_number'] as num?)?.toInt() ?? 1;
+
+        final optionCompare = optionA.compareTo(optionB);
+        if (optionCompare != 0) return optionCompare;
+
+        final mealCompare = _mealIndex(
+          a['meal_time'].toString(),
+        ).compareTo(_mealIndex(b['meal_time'].toString()));
 
         if (mealCompare != 0) return mealCompare;
 
-        return (a['order'] as int).compareTo(b['order'] as int);
+        final orderA = (a['order'] as num?)?.toInt() ?? 0;
+        final orderB = (b['order'] as num?)?.toInt() ?? 0;
+
+        return orderA.compareTo(orderB);
       });
 
       return items;
@@ -34,6 +56,7 @@ class MenuItemService {
   static Future<void> saveMenu({
     required int nutritionPlanId,
     required Map<String, List<String>> menu,
+    int optionNumber = 1,
   }) async {
     for (final entry in menu.entries) {
       final mealTime = entry.key;
@@ -45,8 +68,22 @@ class MenuItemService {
           mealTime: mealTime,
           itemText: items[i],
           order: i,
+          optionNumber: optionNumber,
         );
       }
+    }
+  }
+
+  static Future<void> saveMenuOptions({
+    required int nutritionPlanId,
+    required List<Map<String, List<String>>> menus,
+  }) async {
+    for (int optionIndex = 0; optionIndex < menus.length; optionIndex++) {
+      await saveMenu(
+        nutritionPlanId: nutritionPlanId,
+        menu: menus[optionIndex],
+        optionNumber: optionIndex + 1,
+      );
     }
   }
 
@@ -55,6 +92,7 @@ class MenuItemService {
     required String mealTime,
     required String itemText,
     required int order,
+    int optionNumber = 1,
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
@@ -64,6 +102,7 @@ class MenuItemService {
         'meal_time': mealTime,
         'item_text': itemText,
         'order': order,
+        'option_number': optionNumber,
       }),
     );
 
@@ -78,6 +117,7 @@ class MenuItemService {
     required String mealTime,
     required String itemText,
     required int order,
+    int optionNumber = 1,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$id/'),
@@ -87,6 +127,7 @@ class MenuItemService {
         'meal_time': mealTime,
         'item_text': itemText,
         'order': order,
+        'option_number': optionNumber,
       }),
     );
 

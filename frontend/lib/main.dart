@@ -35,10 +35,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
 
-        scaffoldBackgroundColor: const Color(0xFFF6F3FB),
+        scaffoldBackgroundColor: const Color(0xFFFFF7FB),
 
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
+          seedColor: const Color(0xFFD16BA5),
           brightness: Brightness.light,
         ),
 
@@ -66,7 +66,7 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             elevation: 1,
-            backgroundColor: Colors.deepPurple,
+            backgroundColor: const Color(0xFFD16BA5),
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
             shape: RoundedRectangleBorder(
@@ -100,14 +100,17 @@ class MyApp extends StatelessWidget {
 
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(18),
-            borderSide: const BorderSide(color: Colors.deepPurple, width: 1.5),
+            borderSide: const BorderSide(
+              color: const Color(0xFFD16BA5),
+              width: 1.5,
+            ),
           ),
         ),
 
         tabBarTheme: const TabBarThemeData(
-          labelColor: Colors.deepPurple,
+          labelColor: const Color(0xFFD16BA5),
           unselectedLabelColor: Colors.grey,
-          indicatorColor: Colors.deepPurple,
+          indicatorColor: const Color(0xFFD16BA5),
           dividerColor: Colors.transparent,
         ),
       ),
@@ -178,6 +181,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: ageController,
                     keyboardType: TextInputType.number,
@@ -198,6 +204,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: heightController,
                     keyboardType: TextInputType.number,
@@ -220,6 +229,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   DropdownButtonFormField<String>(
                     value: gender,
                     items: const [
@@ -258,6 +270,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
                       },
                     );
                   }).toList(),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: phoneController,
                     keyboardType: TextInputType.phone,
@@ -278,6 +293,9 @@ class _PatientListScreenState extends State<PatientListScreen> {
                       return null;
                     },
                   ),
+
+                  const SizedBox(height: 12),
+
                   TextFormField(
                     controller: emailController,
                     keyboardType: TextInputType.emailAddress,
@@ -348,10 +366,18 @@ class _PatientListScreenState extends State<PatientListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Pacientes')),
-      floatingActionButton: FloatingActionButton(
+      appBar: AppBar(title: const Text('NutriApp')),
+
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: const Color(0xFFD16BA5),
+        foregroundColor: Colors.white,
+        elevation: 4,
         onPressed: _openCreatePatientForm,
-        child: const Icon(Icons.add),
+        icon: const Icon(Icons.add),
+        label: const Text(
+          'Nuevo paciente',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       body: FutureBuilder<List<dynamic>>(
         future: _patientsFuture,
@@ -383,11 +409,11 @@ class _PatientListScreenState extends State<PatientListScreen> {
                     vertical: 12,
                   ),
                   leading: CircleAvatar(
-                    backgroundColor: Colors.deepPurple.shade100,
+                    backgroundColor: const Color(0xFFF3D4E7),
                     child: Text(
                       (patient['name'] ?? 'P')[0].toUpperCase(),
                       style: const TextStyle(
-                        color: Colors.deepPurple,
+                        color: const Color(0xFFD16BA5),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -821,6 +847,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           return null;
                         },
                       ),
+
+                      const SizedBox(height: 12),
+
                       TextFormField(
                         controller: ageController,
                         focusNode: ageFocus,
@@ -845,6 +874,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           return null;
                         },
                       ),
+
+                      const SizedBox(height: 12),
+
                       DropdownButtonFormField<double>(
                         value: activity,
                         items: const [
@@ -877,7 +909,9 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           labelText: 'Actividad',
                         ),
                       ),
-                      const SizedBox(height: 10),
+
+                      const SizedBox(height: 12),
+
                       DropdownButtonFormField<String>(
                         value: goal,
                         items: const [
@@ -987,15 +1021,27 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                             dailyEquivalents: dailyEquivalents,
                           );
 
-                      final equivalentMenu =
-                          FoodSelectionService.generateFoodMenuFromDistribution(
+                      final menuOptions =
+                          FoodSelectionService.generateMenuOptions(
                             mealDistribution: mealDistribution,
                             pathologies: pathologyCodes,
                           );
 
-                      await MenuItemService.saveMenu(
+                      final equivalentMenu = menuOptions.first;
+
+                      final orderedMenu = <String, List<String>>{
+                        'Desayuno': equivalentMenu['Desayuno'] ?? [],
+                        'Colación mañana':
+                            equivalentMenu['Colación mañana'] ?? [],
+                        'Comida': equivalentMenu['Comida'] ?? [],
+                        'Colación tarde':
+                            equivalentMenu['Colación tarde'] ?? [],
+                        'Cena': equivalentMenu['Cena'] ?? [],
+                      };
+
+                      await MenuItemService.saveMenuOptions(
                         nutritionPlanId: plan['id'],
-                        menu: equivalentMenu,
+                        menus: menuOptions,
                       );
 
                       if (!mounted) return;
@@ -1983,17 +2029,26 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   Future<void> _openEditMenu(Map<String, dynamic> plan) async {
     final items = await MenuItemService.getMenuItemsByPlan(plan['id']);
 
-    final Map<String, List<Map<String, dynamic>>> grouped = {};
+    final groupedOptions = <int, Map<String, List<Map<String, dynamic>>>>{};
 
-    for (var item in items) {
-      final meal = item['meal_time'];
+    for (final item in items) {
+      final optionNumber = (item['option_number'] as num?)?.toInt() ?? 1;
+      final meal = item['meal_time']?.toString() ?? 'Comida';
 
-      if (!grouped.containsKey(meal)) {
-        grouped[meal] = [];
-      }
-
-      grouped[meal]!.add(item);
+      groupedOptions.putIfAbsent(optionNumber, () => {});
+      groupedOptions[optionNumber]!.putIfAbsent(meal, () => []);
+      groupedOptions[optionNumber]![meal]!.add(Map<String, dynamic>.from(item));
     }
+
+    final optionNumbers = groupedOptions.keys.toList()..sort();
+
+    final mealOrder = [
+      'Desayuno',
+      'Colación mañana',
+      'Comida',
+      'Colación tarde',
+      'Cena',
+    ];
 
     if (!mounted) return;
 
@@ -2003,132 +2058,227 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         return StatefulBuilder(
           builder: (context, setModalState) {
             return AlertDialog(
-              title: const Text('Editar menú'),
+              title: const Text('Editar opciones de menú'),
               content: SizedBox(
-                width: 400,
-                height: 500,
-                child: ListView(
-                  children: grouped.entries.map((entry) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          entry.key,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        ...entry.value.map((item) {
-                          return Row(
-                            children: [
-                              Expanded(child: Text(item['item_text'])),
+                width: 600,
+                height: 540,
+                child: groupedOptions.isEmpty
+                    ? const Text('No hay menú registrado')
+                    : DefaultTabController(
+                        length: optionNumbers.length,
+                        child: Column(
+                          children: [
+                            TabBar(
+                              isScrollable: true,
+                              tabs: optionNumbers
+                                  .map((option) => Tab(text: 'Opción $option'))
+                                  .toList(),
+                            ),
 
-                              IconButton(
-                                icon: const Icon(Icons.edit),
-                                onPressed: () async {
-                                  final controller = TextEditingController(
-                                    text: item['item_text'],
-                                  );
+                            const SizedBox(height: 12),
 
-                                  final result = await showDialog<String>(
-                                    context: context,
-                                    builder: (_) => AlertDialog(
-                                      title: const Text('Editar alimento'),
-                                      content: TextField(
-                                        controller: controller,
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: const Text('Cancelar'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () => Navigator.pop(
-                                            context,
-                                            controller.text,
+                            Expanded(
+                              child: TabBarView(
+                                children: optionNumbers.map((optionNumber) {
+                                  final grouped =
+                                      groupedOptions[optionNumber] ?? {};
+
+                                  return ListView(
+                                    children: mealOrder.where((meal) => grouped.containsKey(meal)).map((
+                                      meal,
+                                    ) {
+                                      final mealItems = grouped[meal]!;
+
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            meal,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 16,
+                                            ),
                                           ),
-                                          child: const Text('Guardar'),
-                                        ),
-                                      ],
-                                    ),
+
+                                          const SizedBox(height: 6),
+
+                                          ...mealItems.map((item) {
+                                            return Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    item['item_text'] ?? '',
+                                                  ),
+                                                ),
+
+                                                IconButton(
+                                                  icon: const Icon(Icons.edit),
+                                                  onPressed: () async {
+                                                    final controller =
+                                                        TextEditingController(
+                                                          text:
+                                                              item['item_text'] ??
+                                                              '',
+                                                        );
+
+                                                    final result =
+                                                        await showDialog<
+                                                          String
+                                                        >(
+                                                          context: context,
+                                                          builder: (_) => AlertDialog(
+                                                            title: const Text(
+                                                              'Editar alimento',
+                                                            ),
+                                                            content: TextField(
+                                                              controller:
+                                                                  controller,
+                                                            ),
+                                                            actions: [
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                      context,
+                                                                    ),
+                                                                child:
+                                                                    const Text(
+                                                                      'Cancelar',
+                                                                    ),
+                                                              ),
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.pop(
+                                                                      context,
+                                                                      controller
+                                                                          .text,
+                                                                    ),
+                                                                child:
+                                                                    const Text(
+                                                                      'Guardar',
+                                                                    ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        );
+
+                                                    if (result != null &&
+                                                        result.isNotEmpty) {
+                                                      await MenuItemService.updateMenuItem(
+                                                        id: item['id'],
+                                                        nutritionPlanId:
+                                                            plan['id'],
+                                                        mealTime: meal,
+                                                        itemText: result,
+                                                        order:
+                                                            (item['order']
+                                                                    as num?)
+                                                                ?.toInt() ??
+                                                            0,
+                                                        optionNumber:
+                                                            optionNumber,
+                                                      );
+
+                                                      item['item_text'] =
+                                                          result;
+                                                      setModalState(() {});
+                                                    }
+                                                  },
+                                                ),
+
+                                                IconButton(
+                                                  icon: const Icon(
+                                                    Icons.delete,
+                                                  ),
+                                                  onPressed: () async {
+                                                    await MenuItemService.deleteMenuItem(
+                                                      item['id'],
+                                                    );
+
+                                                    mealItems.remove(item);
+                                                    setModalState(() {});
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          }).toList(),
+
+                                          TextButton(
+                                            onPressed: () async {
+                                              final controller =
+                                                  TextEditingController();
+
+                                              final result =
+                                                  await showDialog<String>(
+                                                    context: context,
+                                                    builder: (_) => AlertDialog(
+                                                      title: const Text(
+                                                        'Nuevo alimento',
+                                                      ),
+                                                      content: TextField(
+                                                        controller: controller,
+                                                      ),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                context,
+                                                              ),
+                                                          child: const Text(
+                                                            'Cancelar',
+                                                          ),
+                                                        ),
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                context,
+                                                                controller.text,
+                                                              ),
+                                                          child: const Text(
+                                                            'Agregar',
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+
+                                              if (result != null &&
+                                                  result.isNotEmpty) {
+                                                await MenuItemService.createMenuItem(
+                                                  nutritionPlanId: plan['id'],
+                                                  mealTime: meal,
+                                                  itemText: result,
+                                                  order: mealItems.length,
+                                                  optionNumber: optionNumber,
+                                                );
+
+                                                mealItems.add({
+                                                  'id': null,
+                                                  'item_text': result,
+                                                  'meal_time': meal,
+                                                  'order': mealItems.length,
+                                                  'option_number': optionNumber,
+                                                });
+
+                                                setModalState(() {});
+                                              }
+                                            },
+                                            child: const Text(
+                                              '+ Agregar alimento',
+                                            ),
+                                          ),
+
+                                          const Divider(),
+                                        ],
+                                      );
+                                    }).toList(),
                                   );
-
-                                  if (result != null) {
-                                    await MenuItemService.updateMenuItem(
-                                      id: item['id'],
-                                      nutritionPlanId: plan['id'],
-                                      mealTime: item['meal_time'],
-                                      itemText: result,
-                                      order: item['order'],
-                                    );
-
-                                    item['item_text'] = result;
-                                    setModalState(() {});
-                                  }
-                                },
+                                }).toList(),
                               ),
-
-                              IconButton(
-                                icon: const Icon(Icons.delete),
-                                onPressed: () async {
-                                  await MenuItemService.deleteMenuItem(
-                                    item['id'],
-                                  );
-                                  entry.value.remove(item);
-                                  setModalState(() {});
-                                },
-                              ),
-                            ],
-                          );
-                        }).toList(),
-
-                        TextButton(
-                          onPressed: () async {
-                            final controller = TextEditingController();
-
-                            final result = await showDialog<String>(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: const Text('Nuevo alimento'),
-                                content: TextField(controller: controller),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, controller.text),
-                                    child: const Text('Agregar'),
-                                  ),
-                                ],
-                              ),
-                            );
-
-                            if (result != null && result.isNotEmpty) {
-                              await MenuItemService.createMenuItem(
-                                nutritionPlanId: plan['id'],
-                                mealTime: entry.key,
-                                itemText: result,
-                                order: entry.value.length,
-                              );
-
-                              entry.value.add({
-                                'item_text': result,
-                                'meal_time': entry.key,
-                                'order': entry.value.length,
-                              });
-
-                              setModalState(() {});
-                            }
-                          },
-                          child: const Text('+ Agregar alimento'),
+                            ),
+                          ],
                         ),
-
-                        const Divider(),
-                      ],
-                    );
-                  }).toList(),
-                ),
+                      ),
               ),
               actions: [
                 TextButton(
@@ -2198,7 +2348,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           style: ElevatedButton.styleFrom(
             elevation: 2,
             backgroundColor: const Color(0xFFF8F4FC),
-            foregroundColor: Colors.deepPurple,
+            foregroundColor: const Color(0xFFD16BA5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
             ),
@@ -2222,8 +2372,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           children: [
             CircleAvatar(
               radius: 18,
-              backgroundColor: Colors.deepPurple.withOpacity(0.12),
-              child: Icon(icon, size: 18, color: Colors.deepPurple),
+              backgroundColor: const Color(0xFFD16BA5).withOpacity(0.12),
+              child: Icon(icon, size: 18, color: const Color(0xFFD16BA5)),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -2271,11 +2421,11 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           children: [
             CircleAvatar(
               radius: 34,
-              backgroundColor: Colors.deepPurple.shade100,
+              backgroundColor: const Color(0xFFF3D4E7),
               child: Text(
                 initial,
                 style: const TextStyle(
-                  color: Colors.deepPurple,
+                  color: const Color(0xFFD16BA5),
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
@@ -2452,20 +2602,22 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 spots: spots,
                                 isCurved: true,
 
-                                color: Colors.deepPurple,
+                                color: const Color(0xFFD16BA5),
 
                                 barWidth: 4,
 
                                 belowBarData: BarAreaData(
                                   show: true,
-                                  color: Colors.deepPurple.withOpacity(0.15),
+                                  color: const Color(
+                                    0xFFD16BA5,
+                                  ).withOpacity(0.15),
                                 ),
 
                                 dotData: FlDotData(show: true),
 
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.deepPurple,
+                                    const Color(0xFFD16BA5),
                                     Colors.purpleAccent,
                                   ],
                                 ),
@@ -2515,20 +2667,22 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                 spots: imcSpots,
                                 isCurved: true,
 
-                                color: Colors.deepPurple,
+                                color: const Color(0xFFD16BA5),
 
                                 barWidth: 4,
 
                                 belowBarData: BarAreaData(
                                   show: true,
-                                  color: Colors.deepPurple.withOpacity(0.15),
+                                  color: const Color(
+                                    0xFFD16BA5,
+                                  ).withOpacity(0.15),
                                 ),
 
                                 dotData: FlDotData(show: true),
 
                                 gradient: LinearGradient(
                                   colors: [
-                                    Colors.deepPurple,
+                                    const Color(0xFFD16BA5),
                                     Colors.purpleAccent,
                                   ],
                                 ),
@@ -2552,13 +2706,27 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
   Future<void> _openViewMenu(Map<String, dynamic> plan) async {
     final items = await MenuItemService.getMenuItemsByPlan(plan['id']);
 
-    final Map<String, List<dynamic>> grouped = {};
+    final Map<int, Map<String, List<dynamic>>> groupedOptions = {};
 
     for (final item in items) {
+      final optionNumber = (item['option_number'] as num?)?.toInt() ?? 1;
+
       final meal = item['meal_time'] ?? 'Comida';
-      grouped.putIfAbsent(meal, () => []);
-      grouped[meal]!.add(item);
+
+      groupedOptions.putIfAbsent(optionNumber, () => {});
+
+      groupedOptions[optionNumber]!.putIfAbsent(meal, () => []);
+
+      groupedOptions[optionNumber]![meal]!.add(item);
     }
+
+    final mealOrder = [
+      'Desayuno',
+      'Colación mañana',
+      'Comida',
+      'Colación tarde',
+      'Cena',
+    ];
 
     if (!mounted) return;
 
@@ -2566,62 +2734,81 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Menú sugerido'),
+          title: const Text('Opciones de menú'),
           content: SizedBox(
-            width: 500,
-            child: SingleChildScrollView(
-              child: grouped.isEmpty
-                  ? const Text('No hay menú registrado')
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: grouped.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children:
-                                [
-                                      'Desayuno',
-                                      'Colación mañana',
-                                      'Comida',
-                                      'Colación tarde',
-                                      'Cena',
-                                    ]
-                                    .where((meal) => grouped.containsKey(meal))
-                                    .map((meal) {
-                                      final items = grouped[meal]!;
+            width: 560,
+            height: 520,
+            child: groupedOptions.isEmpty
+                ? const Text('No hay menú registrado')
+                : DefaultTabController(
+                    length: groupedOptions.length,
+                    child: Column(
+                      children: [
+                        TabBar(
+                          isScrollable: true,
+                          tabs: groupedOptions.keys.map((option) {
+                            return Tab(text: 'Opción $option');
+                          }).toList(),
+                        ),
 
-                                      return Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 14,
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              meal,
-                                              style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 16,
+                        const SizedBox(height: 12),
+
+                        Expanded(
+                          child: TabBarView(
+                            children: groupedOptions.keys.map((option) {
+                              final grouped = groupedOptions[option]!;
+                              final mealOrder = [
+                                'Desayuno',
+                                'Colación mañana',
+                                'Comida',
+                                'Colación tarde',
+                                'Cena',
+                              ];
+
+                              return SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: mealOrder
+                                      .where(
+                                        (meal) => grouped.containsKey(meal),
+                                      )
+                                      .map((meal) {
+                                        final mealItems = grouped[meal]!;
+
+                                        return Padding(
+                                          padding: const EdgeInsets.only(
+                                            bottom: 16,
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                meal,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
                                               ),
-                                            ),
-                                            const SizedBox(height: 6),
-                                            ...items.map(
-                                              (item) => Text(
-                                                '- ${item['item_text']}',
+                                              const SizedBox(height: 6),
+                                              ...mealItems.map(
+                                                (item) => Text(
+                                                  '- ${item['item_text']}',
+                                                ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    })
-                                    .toList(),
+                                            ],
+                                          ),
+                                        );
+                                      })
+                                      .toList(),
+                                ),
+                              );
+                            }).toList(),
                           ),
-                        );
-                      }).toList(),
+                        ),
+                      ],
                     ),
-            ),
+                  ),
           ),
           actions: [
             TextButton(
@@ -2751,20 +2938,77 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                         const SizedBox(height: 18),
 
-                        Row(
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
                           children: [
-                            ElevatedButton(
+                            ElevatedButton.icon(
                               onPressed: () {
                                 _openViewMenu(Map<String, dynamic>.from(plan));
                               },
-                              child: const Text('Ver menú'),
+                              icon: const Icon(Icons.restaurant_menu),
+                              label: const Text('Ver menú'),
                             ),
-                            const SizedBox(width: 12),
-                            OutlinedButton(
+
+                            OutlinedButton.icon(
                               onPressed: () {
                                 _openEditMenu(Map<String, dynamic>.from(plan));
                               },
-                              child: const Text('Editar menú'),
+                              icon: const Icon(Icons.edit),
+                              label: const Text('Editar menú'),
+                            ),
+
+                            OutlinedButton.icon(
+                              onPressed: () async {
+                                final menuItems =
+                                    await MenuItemService.getMenuItemsByPlan(
+                                      plan['id'],
+                                    );
+
+                                final Map<String, List<String>> menu = {};
+
+                                for (final item in menuItems) {
+                                  final meal = item['meal_time'] ?? 'Comida';
+
+                                  if (!menu.containsKey(meal)) {
+                                    menu[meal] = [];
+                                  }
+
+                                  menu[meal]!.add(item['item_text'] ?? '');
+                                }
+
+                                final readableMeals = menu.map(
+                                  (key, value) =>
+                                      MapEntry(key, value.join(', ')),
+                                );
+
+                                await PdfService.generateNutritionPlanPdf(
+                                  patientName: widget.patient['name'] ?? '',
+                                  goal: goalText,
+                                  calories:
+                                      (plan['total_calories'] as num?)
+                                          ?.toDouble() ??
+                                      0,
+                                  protein:
+                                      (plan['protein'] as num?)?.toDouble() ??
+                                      0,
+                                  carbs:
+                                      (plan['carbs'] as num?)?.toDouble() ?? 0,
+                                  fats: (plan['fats'] as num?)?.toDouble() ?? 0,
+                                  menu: menu,
+                                  menus: [menu],
+                                  readableMeals: readableMeals,
+                                  recommendation:
+                                      'Plan nutricional generado automáticamente.',
+                                  gender: widget.patient['gender'],
+                                  height: (widget.patient['height'] as num?)
+                                      ?.toDouble(),
+                                  age: widget.patient['age'],
+                                  weight: (plan['weight'] as num?)?.toDouble(),
+                                );
+                              },
+                              icon: const Icon(Icons.picture_as_pdf),
+                              label: const Text('PDF'),
                             ),
                           ],
                         ),
@@ -2792,17 +3036,17 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.withOpacity(0.08),
+                color: const Color(0xFFD16BA5).withOpacity(0.08),
                 borderRadius: BorderRadius.circular(18),
               ),
               child: TabBar(
                 indicator: BoxDecoration(
-                  color: Colors.deepPurple,
+                  color: const Color(0xFFD16BA5),
                   borderRadius: BorderRadius.circular(14),
                 ),
 
                 labelColor: Colors.white,
-                unselectedLabelColor: Colors.deepPurple,
+                unselectedLabelColor: const Color(0xFFD16BA5),
 
                 dividerColor: Colors.transparent,
 
@@ -2829,7 +3073,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: const Color(0xFFD16BA5),
           foregroundColor: Colors.white,
           elevation: 4,
 
