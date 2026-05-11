@@ -2579,19 +2579,44 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           padding: const EdgeInsets.only(bottom: 14),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                entry.key,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              ...entry.value.map(
-                                (item) => Text('- ${item['item_text']}'),
-                              ),
-                            ],
+                            children:
+                                [
+                                      'Desayuno',
+                                      'Colación mañana',
+                                      'Comida',
+                                      'Colación tarde',
+                                      'Cena',
+                                    ]
+                                    .where((meal) => grouped.containsKey(meal))
+                                    .map((meal) {
+                                      final items = grouped[meal]!;
+
+                                      return Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 14,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              meal,
+                                              style: const TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 6),
+                                            ...items.map(
+                                              (item) => Text(
+                                                '- ${item['item_text']}',
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    })
+                                    .toList(),
                           ),
                         );
                       }).toList(),

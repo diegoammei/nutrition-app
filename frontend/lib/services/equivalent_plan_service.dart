@@ -101,30 +101,69 @@ class EquivalentPlanService {
   static Map<String, Map<String, int>> distributeByMeal({
     required Map<String, int> dailyEquivalents,
   }) {
-    return {
+    final remaining = Map<String, int>.from(dailyEquivalents);
+
+    int take(String group, int amount) {
+      final available = remaining[group] ?? 0;
+      final selected = available >= amount ? amount : available;
+      remaining[group] = available - selected;
+      return selected;
+    }
+
+    final distribution = <String, Map<String, int>>{
       'Desayuno': {
-        'Frutas': dailyEquivalents['Frutas']! >= 1 ? 1 : 0,
-        'Cereales': dailyEquivalents['Cereales']! >= 2 ? 2 : 1,
-        'AOA': dailyEquivalents['AOA']! >= 1 ? 1 : 0,
-        'Grasas S/P': dailyEquivalents['Grasas S/P']! >= 1 ? 1 : 0,
+        'Frutas': take('Frutas', 1),
+        'Cereales': take('Cereales', 2),
+        'AOA': take('AOA', 1),
+        'Grasas S/P': take('Grasas S/P', 1),
       },
-      'Colación': {
-        'Frutas': dailyEquivalents['Frutas']! > 2 ? 1 : 0,
-        'Leche': dailyEquivalents['Leche']! >= 1 ? 1 : 0,
+      'Colación mañana': {
+        'Frutas': take('Frutas', 1),
+        'Leche': take('Leche', 1),
       },
       'Comida': {
-        'Verduras': dailyEquivalents['Verduras']! >= 2 ? 2 : dailyEquivalents['Verduras']!,
-        'Cereales': dailyEquivalents['Cereales']! >= 2 ? 2 : 1,
-        'Leguminosas': dailyEquivalents['Leguminosas']! >= 1 ? 1 : 0,
-        'AOA': dailyEquivalents['AOA']! >= 3 ? 3 : dailyEquivalents['AOA']!,
-        'Grasas S/P': dailyEquivalents['Grasas S/P']! >= 1 ? 1 : 0,
+        'Verduras': take('Verduras', 2),
+        'Cereales': take('Cereales', 2),
+        'Leguminosas': take('Leguminosas', 1),
+        'AOA': take('AOA', 3),
+        'Grasas S/P': take('Grasas S/P', 1),
+      },
+      'Colación tarde': {
+        'Frutas': take('Frutas', 1),
+        'Cereales': take('Cereales', 1),
+        'Grasas S/P': take('Grasas S/P', 1),
       },
       'Cena': {
-        'Verduras': dailyEquivalents['Verduras']! >= 2 ? 2 : dailyEquivalents['Verduras']!,
-        'Cereales': dailyEquivalents['Cereales']! >= 1 ? 1 : 0,
-        'AOA': dailyEquivalents['AOA']! >= 2 ? 2 : dailyEquivalents['AOA']!,
-        'Grasas C/P': dailyEquivalents['Grasas C/P']! >= 1 ? 1 : 0,
+        'Verduras': take('Verduras', 2),
+        'Cereales': take('Cereales', 1),
+        'AOA': take('AOA', 2),
+        'Grasas C/P': take('Grasas C/P', 1),
       },
     };
+
+    final leftoversToMeal = {
+      'Verduras': 'Comida',
+      'Frutas': 'Colación tarde',
+      'Cereales': 'Cena',
+      'Leguminosas': 'Comida',
+      'AOA': 'Comida',
+      'Leche': 'Colación mañana',
+      'Grasas S/P': 'Cena',
+      'Grasas C/P': 'Cena',
+    };
+
+    remaining.forEach((group, amount) {
+      if (amount <= 0) return;
+
+      final meal = leftoversToMeal[group] ?? 'Comida';
+      distribution[meal]![group] = (distribution[meal]![group] ?? 0) + amount;
+    });
+
+    distribution.updateAll((meal, groups) {
+      groups.removeWhere((group, amount) => amount <= 0);
+      return groups;
+    });
+
+    return distribution;
   }
 }
