@@ -3,16 +3,20 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const String baseUrl = 'http://127.0.0.1:8001/api/token/';
+  static const String loginUrl = 'http://127.0.0.1:8001/api/token/';
+  static const String refreshUrl = 'http://127.0.0.1:8001/api/token/refresh/';
 
   static Future<bool> login({
     required String username,
     required String password,
   }) async {
     final response = await http.post(
-      Uri.parse(baseUrl),
+      Uri.parse(loginUrl),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'username': username, 'password': password}),
+      body: jsonEncode({
+        'username': username,
+        'password': password,
+      }),
     );
 
     if (response.statusCode == 200) {
@@ -33,8 +37,49 @@ class AuthService {
     return prefs.getString('access_token');
   }
 
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('refresh_token');
+  }
+
+  static Future<bool> refreshAccessToken() async {
+    final refreshToken = await getRefreshToken();
+
+    if (refreshToken == null || refreshToken.isEmpty) {
+      return false;
+    }
+
+    final response = await http.post(
+      Uri.parse(refreshUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'refresh': refreshToken,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('access_token', data['access']);
+
+      return true;
+    }
+
+    await logout();
+    return false;
+  }
+
   static Future<Map<String, String>> getAuthHeaders() async {
-    final token = await getAccessToken();
+    var token = await getAccessToken();
+
+    if (token == null || token.isEmpty) {
+      final refreshed = await refreshAccessToken();
+
+      if (refreshed) {
+        token = await getAccessToken();
+      }
+    }
 
     return {
       'Content-Type': 'application/json',
@@ -50,6 +95,9 @@ class AuthService {
 
   static Future<bool> isLoggedIn() async {
     final token = await getAccessToken();
-    return token != null && token.isNotEmpty;
+    final refresh = await getRefreshToken();
+
+    return (token != null && token.isNotEmpty) ||
+        (refresh != null && refresh.isNotEmpty);
   }
 }

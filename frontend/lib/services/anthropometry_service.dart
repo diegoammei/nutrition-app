@@ -1,15 +1,25 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class AnthropometryService {
-  static const String baseUrl = 'http://localhost:8001/api/anthropometries/';
+  static const String baseUrl =
+      'http://127.0.0.1:8001/api/anthropometries/';
 
-  static Future<List<dynamic>> getAnthropometriesByPatient(int patientId) async {
-    final response = await http.get(Uri.parse(baseUrl));
+  static Future<List<dynamic>> getAnthropometriesByPatient(
+    int patientId,
+  ) async {
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      return data.where((item) => item['patient'] == patientId).toList();
+
+      return data
+          .where((item) => item['patient'] == patientId)
+          .toList();
     } else {
       throw Exception('Error al cargar antropometría');
     }
@@ -24,7 +34,7 @@ class AnthropometryService {
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'patient': patientId,
         'weight': weight,
