@@ -35,6 +35,7 @@ class NutritionPlanService {
         'gender': gender,
         'activity_factor': activityFactor,
         'goal': goal,
+        'active_menu_option': 1,
       }),
     );
 
@@ -42,7 +43,35 @@ class NutritionPlanService {
       throw Exception('Error al crear plan nutricional');
     }
 
-      return jsonDecode(response.body);
+    return jsonDecode(response.body);
+  }
+
+  static Future<Map<String, dynamic>> updateActiveMenuOption({
+    required int planId,
+    required int activeMenuOption,
+  }) async {
+    final currentResponse = await http.get(Uri.parse('$baseUrl$planId/'));
+
+    if (currentResponse.statusCode != 200) {
+      throw Exception('Error al cargar plan nutricional');
+    }
+
+    final currentPlan = jsonDecode(currentResponse.body);
+
+    final response = await http.put(
+      Uri.parse('$baseUrl$planId/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        ...currentPlan,
+        'active_menu_option': activeMenuOption,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al actualizar opción activa del menú');
+    }
+
+    return jsonDecode(response.body);
   }
 
   static Future<void> deleteNutritionPlan(int planId) async {
