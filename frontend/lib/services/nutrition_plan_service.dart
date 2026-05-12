@@ -1,11 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class NutritionPlanService {
   static const String baseUrl = 'http://127.0.0.1:8001/api/nutrition-plans/';
 
   static Future<List<dynamic>> getNutritionPlansByPatient(int patientId) async {
-    final response = await http.get(Uri.parse(baseUrl));
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -26,7 +30,7 @@ class NutritionPlanService {
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'patient': patientId,
         'weight': weight,
@@ -50,7 +54,10 @@ class NutritionPlanService {
     required int planId,
     required int activeMenuOption,
   }) async {
-    final currentResponse = await http.get(Uri.parse('$baseUrl$planId/'));
+    final currentResponse = await http.get(
+      Uri.parse('$baseUrl$planId/'),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (currentResponse.statusCode != 200) {
       throw Exception('Error al cargar plan nutricional');
@@ -60,7 +67,7 @@ class NutritionPlanService {
 
     final response = await http.put(
       Uri.parse('$baseUrl$planId/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         ...currentPlan,
         'active_menu_option': activeMenuOption,
@@ -77,6 +84,7 @@ class NutritionPlanService {
   static Future<void> deleteNutritionPlan(int planId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl$planId/'),
+      headers: await AuthService.getAuthHeaders(),
     );
 
     if (response.statusCode != 204) {

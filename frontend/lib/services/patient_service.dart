@@ -1,11 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class PatientService {
-  static const String baseUrl = 'http://localhost:8001/api/patients/';
+  static const String baseUrl = 'http://127.0.0.1:8001/api/patients/';
 
   static Future<List<dynamic>> getPatients() async {
-    final response = await http.get(Uri.parse(baseUrl));
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
@@ -25,7 +29,7 @@ class PatientService {
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'name': name,
         'age': age,
@@ -54,10 +58,11 @@ class PatientService {
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$id/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'name': name,
         'age': age,
+        'height': height,
         'gender': gender,
         'phone': phone,
         'email': email,
@@ -71,7 +76,10 @@ class PatientService {
   }
 
   static Future<void> deletePatient(int id) async {
-    final response = await http.delete(Uri.parse('$baseUrl$id/'));
+    final response = await http.delete(
+      Uri.parse('$baseUrl$id/'),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode != 204) {
       throw Exception('Error al eliminar paciente');

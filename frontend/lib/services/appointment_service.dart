@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class AppointmentService {
-  static const String baseUrl =
-      'http://127.0.0.1:8001/api/appointments/';
+  static const String baseUrl = 'http://127.0.0.1:8001/api/appointments/';
 
-  static Future<List<dynamic>> getAppointmentsByPatient(
-    int patientId,
-  ) async {
-    final response = await http.get(Uri.parse(baseUrl));
+  static Future<List<dynamic>> getAppointmentsByPatient(int patientId) async {
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -37,27 +38,20 @@ class AppointmentService {
     required String date,
     String? notes,
     String status = 'pending',
-
     String consultationType = 'follow_up',
-
     double? currentWeight,
-
     String? nextAppointment,
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
-
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'patient': patientId,
         'date': date,
         'notes': notes,
         'status': status,
-
         'consultation_type': consultationType,
-
         'current_weight': currentWeight,
-
         'next_appointment': nextAppointment,
       }),
     );
@@ -71,32 +65,22 @@ class AppointmentService {
     required int appointmentId,
     required int patientId,
     required String date,
-
     String? notes,
-
     String status = 'pending',
-
     String consultationType = 'follow_up',
-
     double? currentWeight,
-
     String? nextAppointment,
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$appointmentId/'),
-
-      headers: {'Content-Type': 'application/json'},
-
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'patient': patientId,
         'date': date,
         'notes': notes,
         'status': status,
-
         'consultation_type': consultationType,
-
         'current_weight': currentWeight,
-
         'next_appointment': nextAppointment,
       }),
     );
@@ -106,11 +90,10 @@ class AppointmentService {
     }
   }
 
-  static Future<void> deleteAppointment(
-    int appointmentId,
-  ) async {
+  static Future<void> deleteAppointment(int appointmentId) async {
     final response = await http.delete(
       Uri.parse('$baseUrl$appointmentId/'),
+      headers: await AuthService.getAuthHeaders(),
     );
 
     if (response.statusCode != 204) {
