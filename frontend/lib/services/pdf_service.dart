@@ -4,6 +4,9 @@ import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 
 class PdfService {
+  static const PdfColor primaryPink = PdfColor.fromInt(0xFFD16BA5);
+  static const PdfColor softPink = PdfColor.fromInt(0xFFF8D9EA);
+  static const PdfColor lightPink = PdfColor.fromInt(0xFFFFF2F8);
   static Future<void> generateNutritionPlanPdf({
     required String patientName,
     required String goal,
@@ -30,13 +33,37 @@ class PdfService {
         margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 40),
         build: (context) {
           return [
-            pw.Center(
-              child: pw.Text(
-                'Plan Nutricional',
-                style: pw.TextStyle(
-                  fontSize: 24,
-                  fontWeight: pw.FontWeight.bold,
-                ),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(20),
+              decoration: pw.BoxDecoration(
+                color: softPink,
+                borderRadius: pw.BorderRadius.circular(18),
+              ),
+              child: pw.Column(
+                children: [
+                  pw.Text(
+                    'Plan Nutricional',
+                    style: pw.TextStyle(
+                      fontSize: 28,
+                      fontWeight: pw.FontWeight.bold,
+                      color: primaryPink,
+                    ),
+                  ),
+
+                  pw.SizedBox(height: 6),
+
+                  pw.Text(
+                    'Cindy López Ramírez',
+                    style: pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+                  ),
+
+                  pw.SizedBox(height: 2),
+
+                  pw.Text(
+                    'Nutrición Clínica',
+                    style: pw.TextStyle(fontSize: 12, color: PdfColors.grey600),
+                  ),
+                ],
               ),
             ),
             pw.SizedBox(height: 8),
@@ -75,32 +102,17 @@ class PdfService {
             pw.Text('Fecha: $formattedDate'),
             pw.SizedBox(height: 16),
 
-            pw.Table(
-              border: pw.TableBorder.all(color: PdfColors.grey400),
+            pw.Wrap(
+              spacing: 12,
+              runSpacing: 12,
               children: [
-                pw.TableRow(
-                  decoration: const pw.BoxDecoration(color: PdfColors.grey300),
-                  children: [
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Concepto',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                    pw.Padding(
-                      padding: const pw.EdgeInsets.all(8),
-                      child: pw.Text(
-                        'Valor',
-                        style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-                _buildRow('Calorías', '${calories.toStringAsFixed(0)} kcal'),
-                _buildRow('Proteína', '${protein.toStringAsFixed(0)} g'),
-                _buildRow('Carbohidratos', '${carbs.toStringAsFixed(0)} g'),
-                _buildRow('Grasas', '${fats.toStringAsFixed(0)} g'),
+                _macroCard('Calorías', '${calories.toStringAsFixed(0)} kcal'),
+
+                _macroCard('Proteína', '${protein.toStringAsFixed(0)} g'),
+
+                _macroCard('Carbohidratos', '${carbs.toStringAsFixed(0)} g'),
+
+                _macroCard('Grasas', '${fats.toStringAsFixed(0)} g'),
               ],
             ),
 
@@ -112,9 +124,37 @@ class PdfService {
             ),
             pw.SizedBox(height: 10),
             ...readableMeals.entries.map((entry) {
-              return pw.Padding(
-                padding: const pw.EdgeInsets.only(bottom: 6),
-                child: pw.Text('${entry.key}: ${entry.value}'),
+              return pw.Container(
+                width: double.infinity,
+                margin: const pw.EdgeInsets.only(bottom: 12),
+                padding: const pw.EdgeInsets.all(14),
+
+                decoration: pw.BoxDecoration(
+                  color: lightPink,
+                  borderRadius: pw.BorderRadius.circular(14),
+                  border: pw.Border.all(color: softPink),
+                ),
+
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      entry.key,
+                      style: pw.TextStyle(
+                        fontSize: 14,
+                        fontWeight: pw.FontWeight.bold,
+                        color: primaryPink,
+                      ),
+                    ),
+
+                    pw.SizedBox(height: 8),
+
+                    pw.Text(
+                      entry.value,
+                      style: const pw.TextStyle(fontSize: 11, lineSpacing: 4),
+                    ),
+                  ],
+                ),
               );
             }).toList(),
 
@@ -435,6 +475,37 @@ class PdfService {
         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(label)),
         pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(value)),
       ],
+    );
+  }
+
+  static pw.Widget _macroCard(String title, String value) {
+    return pw.Container(
+      width: 120,
+      padding: const pw.EdgeInsets.all(12),
+      decoration: pw.BoxDecoration(
+        color: lightPink,
+        borderRadius: pw.BorderRadius.circular(14),
+        border: pw.Border.all(color: softPink),
+      ),
+      child: pw.Column(
+        children: [
+          pw.Text(
+            title,
+            style: pw.TextStyle(fontSize: 11, color: PdfColors.grey700),
+          ),
+
+          pw.SizedBox(height: 6),
+
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 16,
+              fontWeight: pw.FontWeight.bold,
+              color: primaryPink,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

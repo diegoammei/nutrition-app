@@ -2,14 +2,31 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class AppointmentService {
-  static const String baseUrl = 'http://127.0.0.1:8001/api/appointments/';
+  static const String baseUrl =
+      'http://127.0.0.1:8001/api/appointments/';
 
-  static Future<List<dynamic>> getAppointmentsByPatient(int patientId) async {
+  static Future<List<dynamic>> getAppointmentsByPatient(
+    int patientId,
+  ) async {
     final response = await http.get(Uri.parse(baseUrl));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      return data.where((item) => item['patient'] == patientId).toList();
+
+      final appointments = data
+          .where((item) => item['patient'] == patientId)
+          .toList();
+
+      appointments.sort((a, b) {
+        final dateA = DateTime.tryParse(a['date'] ?? '');
+        final dateB = DateTime.tryParse(b['date'] ?? '');
+
+        if (dateA == null || dateB == null) return 0;
+
+        return dateB.compareTo(dateA);
+      });
+
+      return appointments;
     } else {
       throw Exception('Error al cargar citas');
     }
@@ -20,15 +37,28 @@ class AppointmentService {
     required String date,
     String? notes,
     String status = 'pending',
+
+    String consultationType = 'follow_up',
+
+    double? currentWeight,
+
+    String? nextAppointment,
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
       headers: {'Content-Type': 'application/json'},
+
       body: jsonEncode({
         'patient': patientId,
         'date': date,
         'notes': notes,
         'status': status,
+
+        'consultation_type': consultationType,
+
+        'current_weight': currentWeight,
+
+        'next_appointment': nextAppointment,
       }),
     );
 
@@ -37,7 +67,48 @@ class AppointmentService {
     }
   }
 
-  static Future<void> deleteAppointment(int appointmentId) async {
+  static Future<void> updateAppointment({
+    required int appointmentId,
+    required int patientId,
+    required String date,
+
+    String? notes,
+
+    String status = 'pending',
+
+    String consultationType = 'follow_up',
+
+    double? currentWeight,
+
+    String? nextAppointment,
+  }) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl$appointmentId/'),
+
+      headers: {'Content-Type': 'application/json'},
+
+      body: jsonEncode({
+        'patient': patientId,
+        'date': date,
+        'notes': notes,
+        'status': status,
+
+        'consultation_type': consultationType,
+
+        'current_weight': currentWeight,
+
+        'next_appointment': nextAppointment,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al actualizar cita');
+    }
+  }
+
+  static Future<void> deleteAppointment(
+    int appointmentId,
+  ) async {
     final response = await http.delete(
       Uri.parse('$baseUrl$appointmentId/'),
     );

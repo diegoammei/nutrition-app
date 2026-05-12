@@ -17,6 +17,9 @@ import 'services/pathology_service.dart';
 import 'services/nutrition_history_service.dart';
 import 'services/biochemical_test_service.dart';
 import 'services/follow_up_note_service.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'screens/login_screen.dart';
+import 'services/auth_service.dart';
 
 void main() {
   runApp(const MyApp());
@@ -115,7 +118,24 @@ class MyApp extends StatelessWidget {
         ),
       ),
 
-      home: const PatientListScreen(),
+      home: FutureBuilder<bool>(
+        future: AuthService.isLoggedIn(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          final loggedIn = snapshot.data ?? false;
+
+          if (loggedIn) {
+            return const PatientListScreen();
+          }
+
+          return const LoginScreen();
+        },
+      ),
     );
   }
 }
@@ -1069,9 +1089,14 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
   Future<void> _openAppointmentForm() async {
     final notesController = TextEditingController();
+    final currentWeightController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
     DateTime selectedDate = DateTime.now();
+    DateTime? nextAppointment;
+
+    String status = 'pending';
+    String consultationType = 'follow_up';
 
     await showDialog(
       context: context,
@@ -1125,6 +1150,113 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                           });
                         },
                       ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: consultationType,
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de consulta',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'first_time',
+                            child: Text('Primera vez'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'follow_up',
+                            child: Text('Seguimiento'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'control',
+                            child: Text('Control'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          consultationType = value!;
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: status,
+                        decoration: const InputDecoration(labelText: 'Estado'),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'pending',
+                            child: Text('Pendiente'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'completed',
+                            child: Text('Completada'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'cancelled',
+                            child: Text('Cancelada'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          status = value!;
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: currentWeightController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Peso actual (opcional)',
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Próxima cita'),
+                        subtitle: Text(
+                          nextAppointment == null
+                              ? 'Sin próxima cita'
+                              : _formatDate(nextAppointment!.toIso8601String()),
+                        ),
+                        trailing: const Icon(Icons.event_repeat),
+                        onTap: () async {
+                          final pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: nextAppointment ?? DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365 * 5),
+                            ),
+                          );
+
+                          if (pickedDate == null) return;
+
+                          final pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(
+                              nextAppointment ?? DateTime.now(),
+                            ),
+                          );
+
+                          if (pickedTime == null) return;
+
+                          setModalState(() {
+                            nextAppointment = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
                       TextFormField(
                         controller: notesController,
                         decoration: const InputDecoration(
@@ -1150,6 +1282,15 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         notes: notesController.text.trim().isEmpty
                             ? null
                             : notesController.text.trim(),
+                        status: status,
+                        consultationType: consultationType,
+                        currentWeight:
+                            currentWeightController.text.trim().isEmpty
+                            ? null
+                            : double.tryParse(
+                                currentWeightController.text.trim(),
+                              ),
+                        nextAppointment: nextAppointment?.toIso8601String(),
                       );
 
                       if (!mounted) return;
@@ -1170,6 +1311,248 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                         context,
                       ).showSnackBar(SnackBar(content: Text('Error: $e')));
                     }
+                  },
+                  child: const Text('Guardar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _openEditAppointmentForm(
+    Map<String, dynamic> appointment,
+  ) async {
+    final notesController = TextEditingController(
+      text: appointment['notes'] ?? '',
+    );
+
+    final currentWeightController = TextEditingController(
+      text: appointment['current_weight']?.toString() ?? '',
+    );
+
+    final formKey = GlobalKey<FormState>();
+
+    DateTime selectedDate =
+        DateTime.tryParse(appointment['date'] ?? '') ?? DateTime.now();
+
+    DateTime? nextAppointment = DateTime.tryParse(
+      appointment['next_appointment'] ?? '',
+    );
+
+    String status = appointment['status'] ?? 'pending';
+    String consultationType = appointment['consultation_type'] ?? 'follow_up';
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return AlertDialog(
+              title: const Text('Editar cita'),
+              content: SingleChildScrollView(
+                child: Form(
+                  key: formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Fecha y hora'),
+                        subtitle: Text(
+                          _formatDate(selectedDate.toIso8601String()),
+                        ),
+                        trailing: const Icon(Icons.calendar_month),
+                        onTap: () async {
+                          final pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime.now().subtract(
+                              const Duration(days: 365),
+                            ),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365 * 5),
+                            ),
+                          );
+
+                          if (pickedDate == null) return;
+
+                          final pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(selectedDate),
+                          );
+
+                          if (pickedTime == null) return;
+
+                          setModalState(() {
+                            selectedDate = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: consultationType,
+                        decoration: const InputDecoration(
+                          labelText: 'Tipo de consulta',
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'first_time',
+                            child: Text('Primera vez'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'follow_up',
+                            child: Text('Seguimiento'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'control',
+                            child: Text('Control'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          consultationType = value!;
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        value: status,
+                        decoration: const InputDecoration(labelText: 'Estado'),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'pending',
+                            child: Text('Pendiente'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'completed',
+                            child: Text('Completada'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'cancelled',
+                            child: Text('Cancelada'),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          status = value!;
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: currentWeightController,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'Peso actual (opcional)',
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Próxima cita'),
+                        subtitle: Text(
+                          nextAppointment == null
+                              ? 'Sin próxima cita'
+                              : _formatDate(nextAppointment!.toIso8601String()),
+                        ),
+                        trailing: const Icon(Icons.event_repeat),
+                        onTap: () async {
+                          final pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: nextAppointment ?? DateTime.now(),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(
+                              const Duration(days: 365 * 5),
+                            ),
+                          );
+
+                          if (pickedDate == null) return;
+
+                          final pickedTime = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(
+                              nextAppointment ?? DateTime.now(),
+                            ),
+                          );
+
+                          if (pickedTime == null) return;
+
+                          setModalState(() {
+                            nextAppointment = DateTime(
+                              pickedDate.year,
+                              pickedDate.month,
+                              pickedDate.day,
+                              pickedTime.hour,
+                              pickedTime.minute,
+                            );
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: notesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Notas (opcional)',
+                        ),
+                        maxLines: 3,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancelar'),
+                ),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    await AppointmentService.updateAppointment(
+                      appointmentId: appointment['id'],
+                      patientId: widget.patient['id'],
+                      date: selectedDate.toIso8601String(),
+                      notes: notesController.text.trim().isEmpty
+                          ? null
+                          : notesController.text.trim(),
+                      status: status,
+                      consultationType: consultationType,
+                      currentWeight: currentWeightController.text.trim().isEmpty
+                          ? null
+                          : double.tryParse(
+                              currentWeightController.text.trim(),
+                            ),
+                      nextAppointment: nextAppointment?.toIso8601String(),
+                    );
+
+                    if (!mounted) return;
+
+                    Navigator.pop(context);
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Cita actualizada correctamente'),
+                      ),
+                    );
+
+                    setState(() {
+                      _loadData();
+                    });
                   },
                   child: const Text('Guardar'),
                 ),
@@ -2470,6 +2853,8 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
   Widget _buildResumenTab({
     required List<dynamic> anthropometries,
+    required List<dynamic> nutritionPlans,
+    required List<dynamic> appointments,
     required List<FlSpot> spots,
     required List<FlSpot> imcSpots,
     required dynamic latestAnthro,
@@ -2480,6 +2865,45 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _patientHeaderCard(),
+
+          const SizedBox(height: 16),
+
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 3.8,
+            children: [
+              _summaryCard(
+                icon: Icons.restaurant_menu,
+                title: 'Planes',
+                value: '${nutritionPlans.length}',
+              ),
+              _summaryCard(
+                icon: Icons.calendar_month,
+                title: 'Citas',
+                value: '${appointments.length}',
+              ),
+              _summaryCard(
+                icon: Icons.monitor_weight,
+                title: 'Último peso',
+                value: latestAnthro == null
+                    ? 'N/A'
+                    : '${latestAnthro['weight']} kg',
+              ),
+              _summaryCard(
+                icon: Icons.trending_up,
+                title: 'Cambio de peso',
+                value: anthropometries.length < 2
+                    ? 'N/A'
+                    : '${((anthropometries.last['weight'] as num) - (anthropometries.first['weight'] as num)).toStringAsFixed(1)} kg',
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
 
           const SizedBox(height: 16),
           GridView.count(
@@ -2768,39 +3192,92 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                               return SingleChildScrollView(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: mealOrder
-                                      .where(
-                                        (meal) => grouped.containsKey(meal),
-                                      )
-                                      .map((meal) {
-                                        final mealItems = grouped[meal]!;
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              plan['active_menu_option'] ==
+                                                  option
+                                              ? Colors.green
+                                              : null,
+                                        ),
 
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 16,
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                meal,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 16,
-                                                ),
+                                        onPressed: () async {
+                                          await NutritionPlanService.updateActiveMenuOption(
+                                            planId: plan['id'],
+                                            activeMenuOption: option,
+                                          );
+
+                                          plan['active_menu_option'] = option;
+
+                                          if (!context.mounted) return;
+
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Opción $option seleccionada como menú activo',
                                               ),
-                                              const SizedBox(height: 6),
-                                              ...mealItems.map(
-                                                (item) => Text(
-                                                  '- ${item['item_text']}',
-                                                ),
+                                            ),
+                                          );
+                                        },
+
+                                        icon: const Icon(Icons.check_circle),
+
+                                        label: Text(
+                                          plan['active_menu_option'] == option
+                                              ? 'Opción activa'
+                                              : 'Usar esta opción',
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 16),
+
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: mealOrder
+                                          .where(
+                                            (meal) => grouped.containsKey(meal),
+                                          )
+                                          .map((meal) {
+                                            final mealItems = grouped[meal]!;
+
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                bottom: 16,
                                               ),
-                                            ],
-                                          ),
-                                        );
-                                      })
-                                      .toList(),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    meal,
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+
+                                                  const SizedBox(height: 6),
+
+                                                  ...mealItems.map(
+                                                    (item) => Text(
+                                                      '- ${item['item_text']}',
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          })
+                                          .toList(),
+                                    ),
+                                  ],
                                 ),
                               );
                             }).toList(),
@@ -2965,9 +3442,21 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                                       plan['id'],
                                     );
 
+                                final activeOption =
+                                    (plan['active_menu_option'] as num?)
+                                        ?.toInt() ??
+                                    1;
+
                                 final Map<String, List<String>> menu = {};
 
                                 for (final item in menuItems) {
+                                  final optionNumber =
+                                      (item['option_number'] as num?)
+                                          ?.toInt() ??
+                                      1;
+
+                                  if (optionNumber != activeOption) continue;
+
                                   final meal = item['meal_time'] ?? 'Comida';
 
                                   if (!menu.containsKey(meal)) {
@@ -3023,10 +3512,351 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
     );
   }
 
+  Widget _buildAppointmentsTab(List<dynamic> appointments) {
+    Color getStatusColor(String status) {
+      switch (status) {
+        case 'completed':
+          return Colors.green;
+
+        case 'cancelled':
+          return Colors.redAccent;
+
+        default:
+          return const Color(0xFFD16BA5);
+      }
+    }
+
+    String getStatusText(String status) {
+      switch (status) {
+        case 'completed':
+          return 'Completada';
+
+        case 'cancelled':
+          return 'Cancelada';
+
+        default:
+          return 'Pendiente';
+      }
+    }
+
+    String getConsultationType(String type) {
+      switch (type) {
+        case 'first_time':
+          return 'Primera vez';
+
+        case 'control':
+          return 'Control';
+
+        default:
+          return 'Seguimiento';
+      }
+    }
+
+    if (appointments.isEmpty) {
+      return const Center(child: Text('No hay citas registradas'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: appointments.length,
+      itemBuilder: (context, index) {
+        final appointment = appointments[index];
+
+        final status = appointment['status']?.toString() ?? 'pending';
+
+        final consultationType =
+            appointment['consultation_type']?.toString() ?? 'follow_up';
+
+        final currentWeight = appointment['current_weight'];
+
+        final nextAppointment = appointment['next_appointment'];
+
+        return Card(
+          margin: const EdgeInsets.only(bottom: 16),
+
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: getStatusColor(status).withOpacity(0.15),
+
+                      child: Icon(
+                        Icons.calendar_month,
+                        color: getStatusColor(status),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+
+                        children: [
+                          Text(
+                            _formatDate(appointment['date']),
+
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+
+                          const SizedBox(height: 4),
+
+                          Text(
+                            getConsultationType(consultationType),
+
+                            style: TextStyle(color: Colors.grey.shade700),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+
+                      decoration: BoxDecoration(
+                        color: getStatusColor(status).withOpacity(0.12),
+
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+
+                      child: Text(
+                        getStatusText(status),
+
+                        style: TextStyle(
+                          color: getStatusColor(status),
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                if (currentWeight != null) ...[
+                  const SizedBox(height: 14),
+
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.monitor_weight,
+                        size: 18,
+                        color: Color(0xFFD16BA5),
+                      ),
+
+                      const SizedBox(width: 6),
+
+                      Text(
+                        '$currentWeight kg',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+
+                if (nextAppointment != null) ...[
+                  const SizedBox(height: 10),
+
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.event_repeat,
+                        size: 18,
+                        color: Color(0xFFD16BA5),
+                      ),
+
+                      const SizedBox(width: 6),
+
+                      Expanded(
+                        child: Text(
+                          'Próxima cita: ${_formatDate(nextAppointment)}',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+
+                if ((appointment['notes'] ?? '').toString().isNotEmpty) ...[
+                  const SizedBox(height: 14),
+
+                  Container(
+                    width: double.infinity,
+
+                    padding: const EdgeInsets.all(12),
+
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFF2F8),
+
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+
+                    child: Text(
+                      appointment['notes'],
+                      style: TextStyle(color: Colors.grey.shade800),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCalendarTab(List<dynamic> appointments) {
+    DateTime selectedDay = DateTime.now();
+
+    final Map<DateTime, List<dynamic>> events = {};
+
+    for (final appointment in appointments) {
+      final date = DateTime.parse(appointment['date']);
+
+      final normalized = DateTime(date.year, date.month, date.day);
+
+      if (!events.containsKey(normalized)) {
+        events[normalized] = [];
+      }
+
+      events[normalized]!.add(appointment);
+    }
+
+    List<dynamic> getEventsForDay(DateTime day) {
+      final normalized = DateTime(day.year, day.month, day.day);
+
+      return events[normalized] ?? [];
+    }
+
+    return StatefulBuilder(
+      builder: (context, setCalendarState) {
+        final selectedAppointments = getEventsForDay(selectedDay);
+
+        return Column(
+          children: [
+            Card(
+              margin: const EdgeInsets.all(16),
+
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+
+                child: TableCalendar(
+                  firstDay: DateTime.utc(2020),
+                  lastDay: DateTime.utc(2035),
+                  focusedDay: selectedDay,
+
+                  selectedDayPredicate: (day) {
+                    return isSameDay(selectedDay, day);
+                  },
+
+                  eventLoader: getEventsForDay,
+
+                  onDaySelected: (selected, focused) {
+                    setCalendarState(() {
+                      selectedDay = selected;
+                    });
+                  },
+
+                  calendarStyle: CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: Colors.pink.shade200,
+                      shape: BoxShape.circle,
+                    ),
+
+                    selectedDecoration: const BoxDecoration(
+                      color: Color(0xFFD16BA5),
+                      shape: BoxShape.circle,
+                    ),
+
+                    markerDecoration: const BoxDecoration(
+                      color: Colors.pink,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            Expanded(
+              child: selectedAppointments.isEmpty
+                  ? const Center(child: Text('No hay citas este día'))
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+
+                      itemCount: selectedAppointments.length,
+
+                      itemBuilder: (context, index) {
+                        final appointment = selectedAppointments[index];
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+
+                          child: ListTile(
+                            leading: Builder(
+                              builder: (context) {
+                                final status =
+                                    appointment['status']?.toString() ??
+                                    'pending';
+
+                                Color statusColor;
+
+                                switch (status) {
+                                  case 'completed':
+                                    statusColor = Colors.green;
+                                    break;
+
+                                  case 'cancelled':
+                                    statusColor = Colors.redAccent;
+                                    break;
+
+                                  default:
+                                    statusColor = const Color(0xFFD16BA5);
+                                }
+
+                                return CircleAvatar(
+                                  backgroundColor: statusColor.withOpacity(
+                                    0.15,
+                                  ),
+
+                                  child: Icon(
+                                    Icons.calendar_month,
+                                    color: statusColor,
+                                  ),
+                                );
+                              },
+                            ),
+
+                            title: Text(_formatDate(appointment['date'])),
+
+                            subtitle: Text(
+                              appointment['notes']?.toString().isNotEmpty ==
+                                      true
+                                  ? appointment['notes']
+                                  : 'Sin notas',
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(widget.patient['name'] ?? ''),
@@ -3057,6 +3887,7 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                   Tab(text: 'Historia'),
                   Tab(text: 'Planes'),
                   Tab(text: 'Seguimiento'),
+                  Tab(text: 'Calendario'),
                 ],
               ),
             ),
@@ -3144,13 +3975,17 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     spots: spots,
                     imcSpots: imcSpots,
                     latestAnthro: latestAnthro,
+                    nutritionPlans: nutritionPlans,
+                    appointments: appointments,
                   ),
 
                   const Center(child: Text('Historia')),
 
                   _buildPlanesTab(nutritionPlans: nutritionPlans),
 
-                  const Center(child: Text('Seguimiento')),
+                  _buildAppointmentsTab(appointments),
+
+                  _buildCalendarTab(appointments),
                 ],
               );
             },
