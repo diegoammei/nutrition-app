@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class MenuItemService {
   static const String baseUrl =
@@ -19,7 +20,10 @@ class MenuItemService {
   }
 
   static Future<List<dynamic>> getMenuItemsByPlan(int nutritionPlanId) async {
-    final response = await http.get(Uri.parse(baseUrl));
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -96,7 +100,7 @@ class MenuItemService {
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'nutrition_plan': nutritionPlanId,
         'meal_time': mealTime,
@@ -121,7 +125,7 @@ class MenuItemService {
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$id/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'nutrition_plan': nutritionPlanId,
         'meal_time': mealTime,
@@ -137,7 +141,10 @@ class MenuItemService {
   }
 
   static Future<void> deleteMenuItem(int id) async {
-    final response = await http.delete(Uri.parse('$baseUrl$id/'));
+    final response = await http.delete(
+      Uri.parse('$baseUrl$id/'),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode != 204) {
       throw Exception('Error al eliminar alimento del menú');

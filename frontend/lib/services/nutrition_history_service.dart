@@ -1,12 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'auth_service.dart';
 
 class NutritionHistoryService {
   static const String baseUrl =
       'http://127.0.0.1:8001/api/nutrition-histories/';
 
   static Future<List<dynamic>> getHistoriesByPatient(int patientId) async {
-    final response = await http.get(Uri.parse(baseUrl));
+    final response = await http.get(
+      Uri.parse(baseUrl),
+      headers: await AuthService.getAuthHeaders(),
+    );
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -47,7 +51,7 @@ class NutritionHistoryService {
   }) async {
     final response = await http.post(
       Uri.parse(baseUrl),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'patient': patientId,
         'consultation_reason': consultationReason,
@@ -108,7 +112,7 @@ class NutritionHistoryService {
   }) async {
     final response = await http.put(
       Uri.parse('$baseUrl$id/'),
-      headers: {'Content-Type': 'application/json'},
+      headers: await AuthService.getAuthHeaders(),
       body: jsonEncode({
         'patient': patientId,
         'consultation_reason': consultationReason,
