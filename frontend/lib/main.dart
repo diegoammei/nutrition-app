@@ -3453,6 +3453,56 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
 
                             OutlinedButton.icon(
                               onPressed: () async {
+                                final confirmed = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text('Borrar plan'),
+                                      content: const Text(
+                                        '¿Seguro que quieres borrar este plan nutricional? También se eliminarán sus menús asociados.',
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, false),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        ElevatedButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context, true),
+                                          child: const Text('Borrar'),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+
+                                if (confirmed != true) return;
+
+                                await NutritionPlanService.deleteNutritionPlan(
+                                  plan['id'],
+                                );
+
+                                if (!context.mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Plan eliminado correctamente',
+                                    ),
+                                  ),
+                                );
+
+                                setState(() {
+                                  _loadData();
+                                });
+                              },
+                              icon: const Icon(Icons.delete),
+                              label: const Text('Borrar plan'),
+                            ),
+
+                            OutlinedButton.icon(
+                              onPressed: () async {
                                 final menuItems =
                                     await MenuItemService.getMenuItemsByPlan(
                                       plan['id'],
@@ -3608,6 +3658,20 @@ class _PatientDetailScreenState extends State<PatientDetailScreen> {
                     ),
 
                     const SizedBox(width: 12),
+
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            _openAppointmentForm();
+                          },
+                          icon: const Icon(Icons.calendar_month),
+                          label: const Text('Nueva cita'),
+                        ),
+                      ),
+                    ),
 
                     Expanded(
                       child: Column(
